@@ -1,0 +1,79 @@
+*, *:before, *:after{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html, body{
+    user-select: none;
+    font-size: 16px;
+    font-family: sans-serif;
+    min-height: 100vh;
+}
+
+.turntable{
+    position: relative;
+    width: 45vw;
+    max-width: 600px;
+    height: 8rem;
+    padding: 1rem;
+    overflow: hidden;
+    border-radius: 100px;
+    box-shadow: 0 5px 10px -2px #938C93;
+    background-image: linear-gradient(150deg ,#d7cfd6 25%, #938C93);
+}
+
+@keyframes turntable-disk-spin{
+    0%{
+        transform: rotate3d(0, 0, 1, 0turn);
+    }
+    100%{
+        transform: rotate3d(0, 0, 1, 1turn);
+    }
+}
+
+.turntable-disk {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    background:
+            linear-gradient(30deg, transparent 40%, rgba(42, 41, 40, .85) 40%) no-repeat 100% 0,
+            linear-gradient(60deg, rgba(42, 41, 40, .85) 60%, transparent 60%) no-repeat 0 100%,
+            repeating-radial-gradient(#2a2928, #2a2928 4px, #78756f 5px, #2a2928 6px);
+    background-size: 50% 100%, 100% 50%, 100% 100%;
+    animation: turntable-disk-spin 2s linear infinite;
+}
+.turntable-disk:before {
+    display: inline-block;
+    border: solid 1px #d9a388;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px #da5b33,
+    inset 0 0 0 27px #da5b33;
+    background: #b5ac9a;
+    content: '';
+}
+
+.turntable-arm{
+    position: absolute;
+    display: block;
+    top: 1rem;
+    left: 6rem;
+    height: 6rem;
+    width: 4rem;
+    transform-origin: 95% 0%;
+    transform: rotate(0deg);
+    animation: turntable-arm-spin linear 4s 2s alternate infinite;
+}
+@keyframes turntable-arm-spin{
+    from{
+        transform: rotate(9deg);
+    }
+    to{
+        transform: rotate(22deg);
+    }
+}

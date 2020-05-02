@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Harold Espinoza">
+    <title>Reproductor 3 Tiempos</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="harold.css">
+</head>
+<body>
+    <div class="turntable">
+        <div class="turntable-disk"></div>
+        <img src="./img/turntable-arm.svg" alt="turntable-arm" class="turntable-arm">
+    </div>
+
+    <div id="player">
+        <div id="progress">
+            <div class="time" id="timeT">
+                <span>00<span class='slash'>:</span>00</span>
+            </div>
+            <div id="sl1" class='slash'>/</div>
+            <div class="time" id="timeR">
+                <span>00<span class='slash'>:</span>00</span>
+            </div>
+            <div id="sl2" class='slash'>/</div>
+            <div class="time" id="timeTt">
+                <span>00<span class='slash'>:</span>00</span>
+            </div>
+        </div>
+        <div id="controlPlayer">
+            <div id="nextPrev">
+                <div id="prev">
+                    <img src="img/ANTES.png" alt="">
+                </div>
+                <div id="playPause">
+                    <img src="img/PAUSA.png" alt="">
+                </div>
+                <div id="next">
+                    <img src="img/DESPUES.png" alt="">
+                </div>
+            </div>
+            <div id="controlSong">
+                <div class="inputDiv i1"></div>
+                <div class="inputDiv i2"></div>
+                <div id="volPorcent">
+                    100%
+                </div>
+            </div>
+        </div>
+        <div id="controlVolume">
+            <input id="vol-tuner" value="100" min="0" max="100" step="1">
+            <!--<div id="over">
+                <div id="point">
+
+                </div>
+            </div>
+            -->
+        </div>
+    </div>
+
+    <script src="./main.js"></script>
+</body>
+</html>
