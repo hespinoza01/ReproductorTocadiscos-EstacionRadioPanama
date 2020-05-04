@@ -11,7 +11,16 @@ html, body{
     min-height: 100vh;
 }
 
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .turntable{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     position: relative;
     width: 45vw;
     max-width: 600px;
@@ -44,7 +53,7 @@ html, body{
             linear-gradient(60deg, rgba(42, 41, 40, .85) 60%, transparent 60%) no-repeat 0 100%,
             repeating-radial-gradient(#2a2928, #2a2928 4px, #78756f 5px, #2a2928 6px);
     background-size: 50% 100%, 100% 50%, 100% 100%;
-    animation: turntable-disk-spin 2s linear infinite;
+    animation: turntable-disk-spin 1s linear infinite;
 }
 .turntable-disk:before {
     display: inline-block;
@@ -76,4 +85,176 @@ html, body{
     to{
         transform: rotate(22deg);
     }
+}
+
+/* Turntable Controls */
+.turntable-controls{
+    width: 72%;
+    padding-right: 2rem;
+}
+
+.turntable-controls__songinfo{
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Progress Song */
+.controls__songprogress{
+    --progress: 25%;
+    position: relative;
+    width: calc(100% - 7rem);
+    height: .35rem;
+    margin: 0 auto;
+    margin-top: 1rem;
+    border-radius: 100px;
+    background: linear-gradient(90deg, tomato var(--progress), #383538 var(--progress));
+}
+
+.controls__songprogress:before, .controls__songprogress:after{
+    position: absolute;
+    display: inline-block;
+    top: 0;
+}
+
+.controls__songprogress:before{
+    left: 0;
+    content: attr(time-current);
+    transform: translate(-120%, -35%);
+}
+
+.controls__songprogress:after{
+    right: 0;
+    content: attr(time-end);
+    transform: translate(120%, -35%);
+}
+
+
+/* Buttons control */
+.controls__buttonscontrols{
+    display: flex;
+    float: left;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 9rem;
+    height: 2rem;
+    margin: 1rem .25rem;
+    border-radius: 100px;
+    background-color: #838F99;
+    box-shadow: 0 0 7px 1px #938C93;
+}
+.control_btn{
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    background-position: center center;
+    background-size: 1.5rem 1.5rem;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 5px -1px #938C93;
+}
+.btn_prev{
+    background-image: url("./img/backward.svg");
+}
+.btn_play{
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 100px;
+    background-color: #838F99;
+    background-image: url("./img/play.svg");
+    box-shadow: 0 0 0 2px #9C949C;
+    transition: transform .5s, background-color .5s;
+    transform: rotateX(0turn);
+}
+.btn_play.to_pause{
+    background-image: url("./img/pause.svg");
+    background-color: #BA4D2B;
+    transform: rotateX(.5turn);
+}
+.btn_next{
+    background-image: url("./img/forward.svg");
+}
+
+/* Volume Control */
+.controls__volume{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 4rem;
+    padding: 1rem;
+}
+.volumeControl{
+    -webkit-appearance: none;
+    display: inline-block;
+    width: 6rem;
+    height: .35rem;
+    margin: 0 5px;
+    border-radius: 10px;
+    background-color: #383538;
+    outline: none;
+}
+.volumeControl::-webkit-slider-runnable-track {
+  background-color: #383538;
+  border-radius: 10px;
+  height: .35rem;
+}
+.volumeControl::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+  transform: translateY(-3px);
+}
+.volumeControl::-moz-range-track{
+  height: .5rem;
+  background-color: rgba(56,53,56, .35);
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+.volumeControl::-moz-range-thumb{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+}
+.volumeControl::-ms-track {
+  background-color: rgba(56,53,56, .35);
+  border-radius: 10px;
+  height: .35rem;
+}
+.volumeControl::-ms-thumb {
+  background-color: #fff;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: -9px;
+}
+.volumeControl::-ms-fill-lower {
+  background-color: tomato;
+}
+
+.volumeControl::-ms-fill-upper {
+  background-color: rgba(56,53,56, .35);
+}
+
+.volume-value{
+    margin-right: .5rem;
+}
+.volume-value, .volume-value:before{
+    display: inline-block;
+}
+.volume-value:before{
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    margin-right: .25rem;
+    background-image: url("./img/volume-up.svg");
+    background-size: 1rem 1rem;
+    background-position: center;
 }
