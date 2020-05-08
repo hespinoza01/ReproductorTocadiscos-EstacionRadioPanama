@@ -5,33 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Harold Espinoza">
     <title>Reproductor 3 Tiempos</title>
-    <link rel="stylesheet" href="./harold.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div class="turntable">
-        <div class="turntable-disk"></div>
-        <img src="./img/turntable-arm.svg" alt="turntable-arm" class="turntable-arm">
+        <h1 class="turntable-name">oregon</h1>
+        <div id="disk" class="turntable-disk"></div>
+        <img id="arm" class="turntable-arm" src="./img/brazo1.png" alt="">
+
         <div class="turntable-controls">
-            <p class="turntable-controls__songinfo">
-                <span class="controls__songinfo-author">-</span>
-                /
-                <span class="controls__songinfo-songname">-</span>
-            </p>
-
-            <div class="controls__songprogress" time-current="00:00" time-end="00:00"></div>
-
-            <div class="controls__buttonscontrols">
-                <button class="control_btn btn_prev"></button>
-                <button class="control_btn btn_play"></button>
-                <button class="control_btn btn_next"></button>
-            </div>
-            
-            <div class="controls__volume">
-                <span class="volume-value">100%</span>
+            <button id="btn-start" class="control_btn btn_play"></button>
+            <div class="volume_bar">
+                <button class="control_btn btn_volume">80 %</button>
                 <input type="range" class="volumeControl" id="volumeControl" min="0" max="1" value="1" step="0.01">
             </div>
+            <button id="btn-stop" class="control_btn btn_stop"></button>
         </div>
+
+        <p class="turntable-time">
+            <span class="turntable-time__current">00:00</span>
+            <span class="turntable-time__separator"> / </span>
+            <span class="turntable-time__last">00:00</span>
+        </p>
     </div>
+
+    <script>
+        let disk = document.getElementById("disk"),
+            arm = document.getElementById("arm"),
+            btnStart = document.getElementById("btn-start"),
+            btnStop = document.getElementById("btn-stop");
+
+        btnStart.addEventListener("click", function(e){
+            if(btnStart.classList.contains("to_pause")){
+                btnStart.classList.remove("to_pause");
+                disk.style.animationPlayState = "paused";
+                arm.style.animationPlayState = "paused";
+            }else{
+                btnStart.classList.add("to_pause");
+                disk.classList.add("active");
+                arm.classList.add("active");
+                disk.style.animationPlayState = "running";
+                arm.style.animationPlayState = "running";
+            }
+        });
+
+        btnStop.addEventListener("click", function(){
+            btnStart.classList.remove("to_pause");
+            disk.classList.remove("active");
+            arm.classList.remove("active");
+        });
+
+    </script>
 
 
     <!--<script src="./main.js"></script>-->

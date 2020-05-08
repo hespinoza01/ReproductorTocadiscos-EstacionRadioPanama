@@ -1,351 +1,186 @@
-html{
-    width: 100%;
-    height: 100%;
+@font-face {
+  font-family: font002;
+  src:url('../fonts/002.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: font003;
+  src: url('../fonts/003.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: font004;
+  src: url('../fonts/004.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root{
+    --primary: #00C261;
+}
+
+*, *:before, *:after{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html, body{
+    user-select: none;
+    font-size: 16px;
+    font-family: sans-serif;
+    min-height: 100vh;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
 body{
-    height: inherit;
-    width: inherit;
-    margin: 0;
-    font-family: 'Times New Roman', Times, serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-#player{
-    height: 100px;
-    width: 400px;
-    position: absolute;
-    right: 40%;
-    top : 30%;
+.turntable{
+    position: relative;
+    background-color: #6c2505;
+    background-size: 40px 160px, 60px 29px, 27px 27px;
+    background-image:
+        linear-gradient(94deg, rgba(91,33,5,.1) 0%,rgba(83,29,4,0.32) 23%,rgba(74,24,3,.41) 47%,rgba(80,27,5,0.44) 70%,rgba(81,27,5,0.59) 74%,rgba(93,33,4,0.2) 83%,rgba(115,43,3,.5) 100%),
+        linear-gradient(90deg, #541c09 50%, transparent 50%),
+        linear-gradient(90deg, #7a2e00 50%, #632401 50%);
+    height: 450px;
+    width: 315px;
+    padding: 1rem;
 }
-#progress{
-    width: 75%;
-    height: 50%;
-    position: absolute;
-    top: 0;
+
+.turntable-name{
+    font-family: font003;
+    text-transform: uppercase;
+    color: var(--primary);
+    text-align: center;
+}
+
+.turntable-disk {
+    display: flex;
     justify-content: center;
     align-items: center;
+    width: 197px;
+    height: 197px;
+    margin-top: 2rem;
+    margin-left: 1rem;
+    border-radius: 50%;
+    background:
+            linear-gradient(30deg, transparent 40%, rgba(42, 41, 40, .85) 40%) no-repeat 100% 0,
+            linear-gradient(60deg, rgba(42, 41, 40, .85) 60%, transparent 60%) no-repeat 0 100%,
+            repeating-radial-gradient(#2a2928, #2a2928 4px, #78756f 5px, #2a2928 6px);
+    background-size: 50% 100%, 100% 50%, 100% 100%;
+}
+.turntable-disk.active{
+    animation: turntable-disk-spin 1s linear infinite;
+}
+@keyframes turntable-disk-spin{
+    0%{
+        transform: rotate3d(0, 0, 1, 0turn);
+    }
+    100%{
+        transform: rotate3d(0, 0, 1, 1turn);
+    }
+}
+.turntable-disk:before {
+    display: inline-block;
+    width: 87px;
+    height: 87px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 27px #00C261;
+    background: #ffffff;
+    content: '';
+}
+
+.turntable-arm{
+    position: absolute;
+    display: block;
+    top: 3rem;
+    right: 2rem;
+    height: 150px;
+    transform-origin: 95% 0%;
+    transform: rotate(-20deg);
+    transition: transform .5s;
+}
+.turntable-arm.active{
+    transform: rotate(-14deg);
+    animation: turntable-arm-spin linear 4s 2s alternate infinite;
+}
+@keyframes turntable-arm-spin{
+    from{
+        transform: rotate(-14deg);
+    }
+    to{
+        transform: rotate(2deg);
+    }
+}
+
+.turntable-controls{
     display: flex;
-}
-.time{
-    position: absolute;
-    width: 30%;
-    height: 100%;
-    font-size: 2vw;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-#sl1{
-    position: absolute;
-    right: 30%;
-    width: 5%;
-    height: 100%;
-    padding: 0;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-#sl2{
-    position: absolute;
-    left: 30%;
-    width: 5%;
-    height: 100%;
-    padding: 0;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-#timeT{
-    left: 0;
-}
-#timeR{
-    left:35%;
-}
-#timeTt{
-    right: 0;
-}
-#controlPlayer{
-    width: 75%;
-    height: 50%;
-    position: absolute;
-    bottom: 0;
-}
-#nextPrev{
-    width: 50%;
-    height: 100%;
-    position: absolute;
-}
-#next{
-    width:33%;
-    height: 100%;
-    position: absolute;
-    right:0;
-}
-#playPause{
-    width:34%;
-    height: 100%;
-    position: absolute;
-    left:33%;
-}
-#prev{
-    width:33%;
-    height: 100%;
-    position: absolute;
-    left:0;
-}
-img{
+    flex-direction: row;
+    justify-content: space-evenly;
     width: 100%;
-    height: 100%;
-    object-fit: contain;
-    cursor: pointer;
-}
-#controlSong{
-    width: 50%;
-    height: 100%;
-    position: absolute;
-    right: 0;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-.slash{
-    font-size: 1.5vw;
-    font-weight: 800;
-    padding: 0px 5%;
-    color : #ca00ca;
-}
-#controlVolume{
-    width: 25%;
-    height: 100%;
-    position: absolute;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    right: 0;
-}
-/************** SEEKING CONTROL******************/
-input[type='range'] {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    padding: 0;
-    z-index: 100;
-    margin: 0;
+    margin-top: 2rem;
 }
 
-input[type='range']:focus {
-  outline: none;
+.volume_bar{
+    overflow: hidden;
+    width: 4rem;
+    height: 4rem;
 }
 
-input[type='range'],
-input[type='range']::-webkit-slider-runnable-track,
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
+.control_btn{
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    border: none;
+    outline: none;
+    background-color: var(--primary);
+    border-radius: 50%;
+    background-position: center center;
+    background-size: 3.5rem 3.5rem;
+    background-repeat: no-repeat;
+}
+.btn_play{
+    background-image: url("./img/play.svg");
+    transition: transform .5s, background-color .5s;
+    transform: rotateX(0turn);
+}
+.btn_play.to_pause{
+    background-image: url("./img/pause.svg");
+    background-color: #000000;
+    transform: rotateX(.5turn);
+}
+.btn_stop{
+    background-image: url("./img/close.svg");
+    background-size: 2.5rem 2.5rem;
+}
+.btn_volume{
+    font-family: font002;
+    font-weight: bold;
+    font-size: 1.2rem;
 }
 
-input[id="itr1"]::-webkit-slider-thumb {
-  background-color: #ffd000;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #333;
-  border-radius: 50%;
-  margin-top: -9px;
+.turntable-time{
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 1rem;
+    color: white;
 }
-
-input[type=range]::-moz-range-thumb {
-  background-color: yellow;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #333;
-  border-radius: 50%;
+.turntable-time__current{
+    font-family: font003;
 }
-
-input[type=range]::-ms-thumb {
-  background-color: yellow;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #333;
-  border-radius: 50%;
-  margin-top: -9px;
-}
-
-input[type=range]::-webkit-slider-runnable-track {
-  background-color: #777;
-  height: 3px;
-}
-
-input[type=range]:focus::-webkit-slider-runnable-track {
-  outline: none;
-}
-
-input[type=range]::-moz-range-track {
-  background-color: #777;
-  height: 3px;
-}
-
-input[type=range]::-ms-track {
-  background-color: #808080;
-  height: 3px;
-}
-
-input[type=range]::-ms-fill-lower {
-  background-color: yellow;
-}
-
-input[type=range]::-ms-fill-upper {
-  background-color: grey;
-}
-.inputDiv.i1{
-    width: 100%;
-    height: 50%;
-    position: absolute;
-    left: 0;
-    top: 0;
-    cursor: pointer;
-}
-#itr1,#itr2{
-    cursor: pointer;
-}
-
-/*******************************************/
-/******************Control Volumen**************/
-.inputDiv.i2{
-    width: 70%;
-    height: 50%;
-    bottom:0;
-    position: absolute;
-    left: 0;
-    cursor: pointer;
-    transform: rotateZ(180deg);
-}
-input[id="itr2"]::-webkit-slider-thumb {
-  background-color: transparent;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #333;
-  border-radius: 50%;
-  margin-top: -9px;
-}
-
-input[type=itr2]::-moz-range-thumb {
-  background-color: transparent;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #333;
-  border-radius: 50%;
-}
-
-input[type=itr2]::-ms-thumb {
-  background-color: transparent;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #333;
-  border-radius: 50%;
-  margin-top: -9px;
-}
-
-input[type=itr2]::-ms-fill-lower {
-  background-color: transparent;
-}
-#volPorcent{
-    width: 30%;
-    position: absolute;
-    height: 50%;
-    bottom: 0;
-    right: 0;
-    justify-content: flex-end;
-    align-items: center;
-    display: flex;
-}
-/*             Boton de volumne           */
-/* slider */
-#vol-tuner {
-	width: 50%;
-	height: 50%;
-	border-radius: 100%;
-	border: none;
-	background: transparent;
-	box-shadow:
-		0 -70px 15px -68px #FFF /* tuner top flare */,
-		inset 0 71px 2px -70px #FFF /* tuner top flare */,
-		inset 0 2px 0 0px #404040 /* tuner top edge */,
-		inset 0 -2px 0 0px #1d1d1d /* tuner bottom edge */,
-		0 0 35px -35px #cc57c9 /*glow*/,
-		-2px 9px 15px -2px hsla(0,0%,0%,0.9) /* shadow */,
-		0 0 5px 3px #df25d9 /* ring inner */,
-		0 0 0px 7px #800079 /* ring outer */,
-		0 -1px 0px 8px #2d172c /* ring outer edge top shadow */,
-		0 1px 0px 8px #5f2f5c /* ring outer edge bottom highlight */,
-		0 -7px 15px 5px #844c81 /* base highlight */,
-		0 0 0px 20px #323 /* base */,
-		0 -1px 0px 20px #483e48 /* base contour highlight */,
-		0 0 0px 21px #1e0f1d /* base contour */,
-		0 0 55px 0px #cc57c9 /*glow*/,
-		0px 2px 4px 22px hsla(0,0%,0%,0.4) /* shadow */,
-		inset 151px 0px 20px -75px hsla(0,0%,60%,0.1) /* test */,
-		inset -151px 0px 20px -75px  hsla(0,0%,60%,0.1) /* test 2 */,
-		inset 0px 130px 10px -50px hsla(0,0%,0%,0.2) /* test 3*/,
-		inset 0px -125px 10px -50px  hsla(0,0%,0%,0.2) /* test 4 */,
-		inset 0 0 0 75px #282828 /* solid color */;
-	text-align: center;
-	outline:none;
-	cursor: pointer;
-	-webkit-appearance:none;
-    transition: 1s;
-    color: #f1a2ef;
-    text-shadow: 0 0 2px #df25d9, 0 0 15px #ff1dfb;
-    font-family: 'Iceland', cursive;
-}
-#vol-tuner:hover {
-	box-shadow:
-		0 -70px 15px -68px #FFF /* tuner top flare */,
-		inset 0 71px 2px -70px #FFF /* tuner top flare */,
-		inset 0 2px 0 0px #404040 /* tuner top edge */,
-		inset 0 -2px 0 0px #1d1d1d /* tuner bottom edge */,
-		0 0 35px 0px #cc57c9 /*glow*/,
-		-2px 9px 15px -2px hsla(0,0%,0%,0.9) /* shadow */,
-		0 0 5px 3px #ee8aeb /* ring inner */,
-		0 0 0px 7px #ca00bf /* ring outer */,
-		0 -1px 0px 8px #2d172c /* ring outer edge top shadow */,
-		0 1px 0px 8px #5f2f5c /* ring outer edge bottom highlight */,
-		0 -7px 15px 5px #844c81 /* base highlight */,
-		0 0 0px 20px #323 /* base */,
-		0 -1px 0px 20px #483e48 /* base contour highlight */,
-		0 0 0px 21px #1e0f1d /* base contour */,
-		0 0 65px 5px #cc57c9 /*glow*/,
-		0px 2px 4px 22px hsla(0,0%,0%,0.4) /* shadow */,
-		inset 151px 0px 20px -75px hsla(0,0%,60%,0.1) /* test */,
-		inset -151px 0px 20px -75px  hsla(0,0%,60%,0.1) /* test 2 */,
-		inset 0px 130px 10px -50px hsla(0,0%,0%,0.2) /* test 3*/,
-		inset 0px -125px 10px -50px  hsla(0,0%,0%,0.2) /* test 4 */,
-		inset 0 0 0 75px #282828 /* solid color */;
-}
-
-input#vol-tuner::-webkit-outer-spin-button,
-input#vol-tuner::-webkit-inner-spin-button {
-	-webkit-appearance:none;
-}
-
-#over{
-    width: 50%;
-	height: 50%;
-    border-radius: 100% ;
-    background-color:red;
-    position: absolute;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    cursor: pointer;
-}
-#point{
-    width: 10%;
-    height: 10%;
-    border-radius: 100%;
-    background-color:white;
-    right: 5%;
-    position: absolute;
-    cursor: pointer;
+.turntable-time__last{
+    font-family: font004;
 }
