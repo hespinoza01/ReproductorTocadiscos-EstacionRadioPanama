@@ -1,4 +1,11 @@
 @font-face {
+  font-family: font001;
+  src:url('../fonts/001.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: font002;
   src:url('../fonts/002.ttf') format('truetype');
   font-weight: normal;
@@ -60,7 +67,7 @@ body{
 }
 
 .turntable-name{
-    font-family: font003;
+    font-family: font001;
     text-transform: uppercase;
     color: var(--primary);
     text-align: center;
@@ -70,15 +77,12 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
     width: 197px;
     height: 197px;
     margin-top: 2rem;
     margin-left: 1rem;
     border-radius: 50%;
-    background:
-            linear-gradient(30deg, transparent 40%, rgba(42, 41, 40, .85) 40%) no-repeat 100% 0,
-            linear-gradient(60deg, rgba(42, 41, 40, .85) 60%, transparent 60%) no-repeat 0 100%,
-            repeating-radial-gradient(#2a2928, #2a2928 4px, #78756f 5px, #2a2928 6px);
     background-size: 50% 100%, 100% 50%, 100% 100%;
 }
 .turntable-disk.active{
@@ -92,13 +96,44 @@ body{
         transform: rotate3d(0, 0, 1, 1turn);
     }
 }
-.turntable-disk:before {
+
+/* Diseño Disco 1 */
+.disk1{
+    background:
+            linear-gradient(30deg, transparent 40%, rgba(42, 41, 40, .85) 40%) no-repeat 100% 0,
+            linear-gradient(60deg, rgba(42, 41, 40, .85) 60%, transparent 60%) no-repeat 0 100%,
+            repeating-radial-gradient(#2a2928, #2a2928 4px, #78756f 5px, #2a2928 6px);
+    background-size: 50% 100%, 100% 50%, 100% 100%;
+}
+.disk1:before {
     display: inline-block;
     width: 87px;
     height: 87px;
     border-radius: 50%;
     box-shadow: inset 0 0 0 27px #00C261;
     background: #ffffff;
+    content: '';
+}
+
+/* Diseño Disco 2 */
+.disk2{
+    border: 7px solid #2C2C2C;
+    background:
+            linear-gradient(35deg, transparent 43%, rgba(180, 180, 180, .05) 43%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 57%, transparent 57%) no-repeat 0 100%,
+            linear-gradient(55deg, transparent 43%, rgba(180, 180, 180, .05) 43%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 57%, transparent 57%) no-repeat 0 100%,
+            linear-gradient(-38deg, transparent 45%, rgba(180, 180, 180, .05) 45%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 55%, transparent 55%) no-repeat 0 100%,
+            linear-gradient(-52deg, transparent 45%, rgba(180, 180, 180, .05) 45%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 55%, transparent 55%) no-repeat 0 100%,
+            repeating-radial-gradient(#252525, #0A0A0A 0.5px, #2E2E2E 1px, #2a2928 1.5px);
+}
+.disk2:before{
+    display: inline-block;
+    box-sizing: border-box;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    border: 2px solid #A3898A;
+    box-shadow: inset 0 0 0 30px #A30300, 0 0 0 7px #2C2C2C;
+    background: #fff;
     content: '';
 }
 
