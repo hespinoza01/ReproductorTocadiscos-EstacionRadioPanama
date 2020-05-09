@@ -117,13 +117,14 @@ body{
 
 /* Diseño Disco 2 */
 .disk2{
-    border: 7px solid #2C2C2C;
+    border: 10px solid #2C2C2C;
+    box-shadow: inset 0 0 0 1px #A3898A;
     background:
             linear-gradient(35deg, transparent 43%, rgba(180, 180, 180, .05) 43%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 57%, transparent 57%) no-repeat 0 100%,
             linear-gradient(55deg, transparent 43%, rgba(180, 180, 180, .05) 43%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 57%, transparent 57%) no-repeat 0 100%,
             linear-gradient(-38deg, transparent 45%, rgba(180, 180, 180, .05) 45%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 55%, transparent 55%) no-repeat 0 100%,
             linear-gradient(-52deg, transparent 45%, rgba(180, 180, 180, .05) 45%, rgba(225, 225, 225, .2), rgba(180, 180, 180, .05) 55%, transparent 55%) no-repeat 0 100%,
-            repeating-radial-gradient(#252525, #0A0A0A 0.5px, #2E2E2E 1px, #2a2928 1.5px);
+            repeating-radial-gradient(#252525, #0A0A0A 1px, #2E2E2E 2px, #2a2928 3px);
 }
 .disk2:before{
     display: inline-block;
@@ -132,7 +133,23 @@ body{
     height: 75px;
     border-radius: 50%;
     border: 2px solid #A3898A;
-    box-shadow: inset 0 0 0 30px #A30300, 0 0 0 7px #2C2C2C;
+    box-shadow: inset 0 0 0 30px #A30300, 0 0 0 10px #2C2C2C;
+    background: #fff;
+    content: '';
+}
+
+/* Diseño Disco 3 */
+.disk3{
+    border: 7px solid #0F0F0F;
+    background: repeating-radial-gradient(#1C1A19, #1A1918 4px, #756363 5px);
+}
+.disk3:before{
+    display: inline-block;
+    box-sizing: border-box;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 30px #D89714, 0 0 0 7px #151710;
     background: #fff;
     content: '';
 }
@@ -143,6 +160,7 @@ body{
     top: 3rem;
     right: 2rem;
     height: 150px;
+    width: 107px;
     transform-origin: 95% 0%;
     transform: rotate(-20deg);
     transition: transform .5s;
