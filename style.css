@@ -1,27 +1,27 @@
 @font-face {
   font-family: font001;
-  src:url('../fonts/001.ttf') format('truetype');
+  src:url('./fonts/001.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: font002;
-  src:url('../fonts/002.ttf') format('truetype');
+  src:url('./fonts/002.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: font003;
-  src: url('../fonts/003.ttf') format('truetype');
+  src: url('./fonts/003.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: font004;
-  src: url('../fonts/004.ttf') format('truetype');
+  src: url('./fonts/004.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
