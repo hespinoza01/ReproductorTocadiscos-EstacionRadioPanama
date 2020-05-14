@@ -3,8 +3,7 @@ const disk = document.getElementById("disk"),
     arm = document.getElementById("arm"),
     btnStart = document.getElementById("btn-start"),
     btnStop = document.getElementById("btn-stop"),
-    volumeControl = document.getElementById("volume-control"),
-    volumeIndicator = document.getElementById("volume-indicator"),
+    progressIndicator = document.getElementById("progress-indicator"),
     currentTimeIndicator = document.getElementById("current-time"),
     lastTimeIndicator = document.getElementById("last-time");
 
@@ -55,10 +54,10 @@ const diskStyle = {
     };
 
 const Turntable = {
-    disk: diskStyle.Disk2, // Estilo del disco
-    arm: armStyle.Arm3, // Estilo de la aguja
+    disk: diskStyle.Disk1, // Estilo del disco
+    arm: armStyle.Arm2, // Estilo de la aguja
     playerType: playerType.Playlist, // Tipo de reproductor
-    reproductionType: reproductionType.Shuffle, // Tipo de reproducción
+    reproductionType: reproductionType.Linear, // Tipo de reproducción
     lastTimeType: lastTimeType.TotalTime, // Tipo de tiempo final
     source: SONGS, // Recurso a reproducir, lista de canciones para la opción de 'playlist' o la url para la opción de 'stream'
     streamTime: 3600 // Tiempo de duración en segundos para el tipo de reproducción de radio, 1 hora = 3600 segundos
@@ -124,6 +123,11 @@ function onCurrentTimeInterval() {
     if(currentTime < player.duration - 1) {
         currentTime++;
         currentTimeIndicator.innerHTML = getReadableTime(currentTime);
+        progressIndicator.dispatchEvent(new CustomEvent('updateprogresssong', {
+            detail: {
+                value: Math.floor((currentTime * 100) / player.duration)
+            }
+        }));
 
         if(Turntable.lastTimeType === lastTimeType.RemainingTime){
             let durationTotal = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
@@ -236,29 +240,14 @@ function onClickBtnStart(e) {
     }
 }
 
-function onInputVolumeControl(e){
-    let volumeValue = e.target.value;
-
-    player.volume = volumeValue;
-    volumeIndicator.dispatchEvent(
-        new CustomEvent('updatevolumecontrol', {
-            detail: {
-                volume: Math.floor(volumeValue * 100)
-            },
-            bubbles: true,
-            cancelable: true
-        })
-    );
-}
-
-function onUpdateVolumeControl(e){
-    let volumeValue = e.detail.volume;
-    volumeIndicator.textContent = volumeValue + " %";
+function onUpdateProgressSong(e){
+    let progressValue = e.detail.value;
+    progressIndicator.textContent = progressValue + " %";
 }
 
 function onClickBtnStop(e) {
     player.pause();
-    player.currentTime = 0;
+    player.src = '';
 
     clearInterval(currentTimeInterval);
     currentTime = 0;
@@ -266,6 +255,7 @@ function onClickBtnStop(e) {
 
     currentTimeIndicator.innerHTML = getReadableTime(0);
     lastTimeIndicator.innerHTML = getReadableTime(0);
+    progressIndicator.textContent = 0 + " %";
 
     btnStart.classList.remove("to_pause");
     disk.classList.remove("active");
@@ -287,9 +277,7 @@ window.addEventListener("load", function () {
 
     btnStart.on("click", onClickBtnStart);
 
-    volumeControl.on("input", onInputVolumeControl);
-
-    volumeIndicator.on("updatevolumecontrol", onUpdateVolumeControl);
+    progressIndicator.on("updateprogresssong", onUpdateProgressSong);
 
     btnStop.on("click", onClickBtnStop);
 
