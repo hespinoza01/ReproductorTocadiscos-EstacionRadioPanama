@@ -58,7 +58,7 @@ const Turntable = {
     disk: diskStyle.Disk2, // Estilo del disco
     arm: armStyle.Arm3, // Estilo de la aguja
     playerType: playerType.Playlist, // Tipo de reproductor
-    reproductionType: reproductionType.Linear, // Tipo de reproducción
+    reproductionType: reproductionType.Shuffle, // Tipo de reproducción
     lastTimeType: lastTimeType.TotalTime, // Tipo de tiempo final
     source: SONGS, // Recurso a reproducir, lista de canciones para la opción de 'playlist' o la url para la opción de 'stream'
     streamTime: 3600 // Tiempo de duración en segundos para el tipo de reproducción de radio, 1 hora = 3600 segundos
@@ -66,7 +66,7 @@ const Turntable = {
 
 // Declaraciones para el audio
 let player = new Audio(),
-    shuffleSongs = new Array();
+    oldShuffleSongs = new Array();
 
 
 // Prototipo de la función shuffle para crear el arreglo aleatorio de las canciones
@@ -148,7 +148,7 @@ function onLoadPlayerData() {
     let duration = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
     
     lastTimeIndicator.innerHTML = getReadableTime(duration);
-    arm.style.animationDuration = player.duration + "s";
+    arm.style.animationDuration = duration + "s";
     isLoaded = true;
 }
 
@@ -156,6 +156,12 @@ function onPlayPlayer() {
     if(!isStarted){
         if(Turntable.playerType === playerType.Playlist){
             if(Turntable.source.length > 0){
+                if(Turntable.reproductionType === reproductionType.Shuffle){
+                    Turntable.source.shuffle();
+                    console.log("----- Lista Inicial -----");
+                    console.log(Turntable.source);
+                }
+
                 currentSong = {
                     index: 0,
                     path: Turntable.source[0].path
@@ -164,7 +170,7 @@ function onPlayPlayer() {
         }else if(Turntable.playerType === playerType.Stream){
             currentSong = {
                 index: -1,
-                path: Turntable.source[0].path
+                path: Turntable.source
             }
         }
 
@@ -180,6 +186,26 @@ function onEndedPlayerData() {
         currentSongIndex = currentSong.index;
 
     if(Turntable.playerType === playerType.Playlist) {
+        // Si esta en modo LinearLoop o Shuffle, reinicia la reproducción de la lista al inicio
+        if(Turntable.reproductionType !== reproductionType.Linear){
+            currentSongIndex = (currentSongIndex + 1 === playlistLength) ? -1 : currentSongIndex;
+
+            if(currentSongIndex === -1){
+                oldShuffleSongs = Array.from(Turntable.source);
+
+                let lastSOngFromOldList = oldShuffleSongs[oldShuffleSongs.length - 1];
+
+                do{
+                    Turntable.source.shuffle();
+                }while(Turntable.source[0] === lastSOngFromOldList);
+
+                console.log("----- Lista Antigua -----");
+                console.log(oldShuffleSongs);
+                console.log("----- Lista Nueva -----");
+                console.log(Turntable.source);
+            }
+        }
+
         if(currentSongIndex < playlistLength - 1){
             currentSong = {
                 index: (currentSongIndex + 1),
