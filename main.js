@@ -24,23 +24,44 @@ const SONGS = new Array(
     {path:"./canciones/015.mp3",artist:"Danny Ocean",song:"Vuelve"}
  );
 
-// Objetos de configuración para los estilos de los discos y las agujas
+// Objetos de configuración para las distintas opciones del tocadiscos
+// Configuración del estilo del disco
 const diskStyle = {
         get Disk1(){ return "disk1"; },
         get Disk2(){ return "disk2"; },
         get Disk3(){ return "disk3"; }
     },
+    // Configuración del estilo de la aguja
     armStyle = {
         get Arm1(){ return "arm1"; },
         get Arm2(){ return "arm2"; },
         get Arm3(){ return "arm3"; }
+    },
+    // Tipo de reproductor, dos opciones: 'playlist' o 'stream'
+    playerType = {
+        get Playlist(){ return 'playlist'; },
+        get Stream(){ return 'stream'; }
+    },
+    // Configuración del tipo de reproducción
+    reproductionType = {
+        get Linear(){ return 1; }, // Reproducir de inicio a fin
+        get LinearLoop(){ return 2; }, // Reproducir de inico a fin y repetir
+        get Shuffle(){ return 3; } // Reproducir revolviendo la lista
+    },
+    // Tipo de visualización del tiempo final de la reproducción
+    lastTimeType = {
+        get TotalTime(){ return 1; }, // Muestra el tiempo total de reproducción
+        get RemainingTime(){ return 2; } // Muestra el tiempo restante de la reproducción
     };
 
-const turntableConfig = {
-    disk: diskStyle.Disk2,
-    arm: armStyle.Arm3,
-    playerType: "playlist", // Tipo de reproductor, dos opciones: 'playlist' o 'stream'
-    source: SONGS // Recurso a reproducir, lista de canciones para la opción de 'playlist' o la url para la opción de 'stream'
+const Turntable = {
+    disk: diskStyle.Disk2, // Estilo del disco
+    arm: armStyle.Arm3, // Estilo de la aguja
+    playerType: playerType.Playlist, // Tipo de reproductor
+    reproductionType: reproductionType.Linear, // Tipo de reproducción
+    lastTimeType: lastTimeType.TotalTime, // Tipo de tiempo final
+    source: SONGS, // Recurso a reproducir, lista de canciones para la opción de 'playlist' o la url para la opción de 'stream'
+    streamTime: 3600 // Tiempo de duración en segundos para el tipo de reproducción de radio, 1 hora = 3600 segundos
 };
 
 // Declaraciones para el audio
@@ -103,54 +124,75 @@ function onCurrentTimeInterval() {
     if(currentTime < player.duration - 1) {
         currentTime++;
         currentTimeIndicator.innerHTML = getReadableTime(currentTime);
-    }
-}
 
-function onLoadPlayerData() {
-    lastTimeIndicator.innerHTML = getReadableTime(player.duration);
-    arm.style.animationDuration = player.duration + "s";
-    isLoaded = true;
-}
-
-function onEndedPlayerData() {
-    onClickBtnStop();
-    
-    let playlistLength = turntableConfig.source.length,
-        currentSongIndex = currentSong.index;
-
-    if(turntableConfig.playerType === 'playlist') {
-        if(currentSongIndex < playlistLength - 1){
-            currentSong = {
-                index: (currentSongIndex + 1),
-                path: turntableConfig.source[currentSongIndex + 1].path
-            }
-
-            player.src = currentSong.path;
-            setTimeout(onClickBtnStart, 1000);
+        if(Turntable.lastTimeType === lastTimeType.RemainingTime){
+            let durationTotal = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
+            
+            lastTimeIndicator.dispatchEvent(
+                new CustomEvent('updateremainingtime', {
+                    detail: {
+                        duration: durationTotal - currentTime
+                    },
+                    bubbles: true,
+                    cancelable: true
+                }));
         }
     }
 }
 
-function onClickBtnStart(e) {
+function onUpdateRemainingTime(e) {
+    lastTimeIndicator.innerHTML = getReadableTime(e.detail.duration);
+}
+
+function onLoadPlayerData() {
+    let duration = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
+    
+    lastTimeIndicator.innerHTML = getReadableTime(duration);
+    arm.style.animationDuration = player.duration + "s";
+    isLoaded = true;
+}
+
+function onPlayPlayer() {
     if(!isStarted){
-        if(turntableConfig.playerType === 'playlist'){
-            if(turntableConfig.source.length > 0){
+        if(Turntable.playerType === playerType.Playlist){
+            if(Turntable.source.length > 0){
                 currentSong = {
                     index: 0,
-                    path: turntableConfig.source[0].path
+                    path: Turntable.source[0].path
                 };
             }
-        }else if(turntableConfig.playerType === 'stream'){
+        }else if(Turntable.playerType === playerType.Stream){
             currentSong = {
                 index: -1,
-                path: turntableConfig.source
+                path: Turntable.source[0].path
             }
         }
 
         player.src = currentSong.path;
         isStarted = true;
     }
+}
 
+function onEndedPlayerData() {
+    onClickBtnStop();
+    
+    let playlistLength = Turntable.source.length,
+        currentSongIndex = currentSong.index;
+
+    if(Turntable.playerType === playerType.Playlist) {
+        if(currentSongIndex < playlistLength - 1){
+            currentSong = {
+                index: (currentSongIndex + 1),
+                path: Turntable.source[currentSongIndex + 1].path
+            }
+
+            player.src = currentSong.path;
+            setTimeout(onClickBtnStart, 1500);
+        }
+    }
+}
+
+function onClickBtnStart(e) {
     if(btnStart.classList.contains("to_pause")){
         player.pause();
         clearInterval(currentTimeInterval);
@@ -191,8 +233,14 @@ function onUpdateVolumeControl(e){
 function onClickBtnStop(e) {
     player.pause();
     player.currentTime = 0;
+
     clearInterval(currentTimeInterval);
     currentTime = 0;
+    isStarted = false;
+
+    currentTimeIndicator.innerHTML = getReadableTime(0);
+    lastTimeIndicator.innerHTML = getReadableTime(0);
+
     btnStart.classList.remove("to_pause");
     disk.classList.remove("active");
     arm.classList.remove("active");
@@ -203,11 +251,12 @@ function onClickBtnStop(e) {
 window.addEventListener("load", function () {
     // Cargar configuraciones del tocadiscos
     (function(){
-        disk.classList.add(turntableConfig.disk);
-        arm.classList.add(turntableConfig.arm);
+        disk.classList.add(Turntable.disk);
+        arm.classList.add(Turntable.arm);
     })();
 
     player.onloadeddata = onLoadPlayerData;
+    player.onplay = onPlayPlayer;
     player.onended = onEndedPlayerData;
 
     btnStart.on("click", onClickBtnStart);
@@ -217,4 +266,6 @@ window.addEventListener("load", function () {
     volumeIndicator.on("updatevolumecontrol", onUpdateVolumeControl);
 
     btnStop.on("click", onClickBtnStop);
+
+    lastTimeIndicator.on("updateremainingtime", onUpdateRemainingTime);
 });
