@@ -75,13 +75,14 @@ body{
 
 .turntable-disk {
     display: flex;
+    position: relative;
+    top: 2rem;
+    left: 1rem;
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
     width: 197px;
     height: 197px;
-    margin-top: 2rem;
-    margin-left: 1rem;
     border-radius: 50%;
     background-size: 50% 100%, 100% 50%, 100% 100%;
 }
@@ -187,7 +188,7 @@ body{
     transform-origin: 90% 20%;
     transform: rotate(-47deg);
 }
-.arm1.active{
+/*.arm1.active{
     transform: rotate(-15deg);
     animation: turntable-arm-spin linear 4s 2s alternate infinite;
 }
@@ -222,14 +223,14 @@ body{
     to{
         transform: rotate(-13deg);
     }
-}
+}*/
 
 .turntable-controls{
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
     width: 100%;
-    margin-top: 2rem;
+    margin-top: 4rem;
 }
 
 .control_btn{
