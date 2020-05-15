@@ -25,42 +25,64 @@ const SONGS = new Array(
 
 // Objetos de configuración para las distintas opciones del tocadiscos
 // Configuración del estilo del disco
-const diskStyle = {
-        get Disk1(){ return "disk1"; },
-        get Disk2(){ return "disk2"; },
-        get Disk3(){ return "disk3"; }
-    },
-    // Configuración del estilo de la aguja
-    armStyle = {
-        get Arm1(){ return "arm1"; },
-        get Arm2(){ return "arm2"; },
-        get Arm3(){ return "arm3"; }
-    },
-    // Tipo de reproductor, dos opciones: 'playlist' o 'stream'
-    playerType = {
-        get Playlist(){ return 'playlist'; },
-        get Stream(){ return 'stream'; }
+function discoTipo(value) {
+    switch(value){
+        case 1:
+            return "disk1";
+            break;
+        case 2:
+            return "disk2";
+            break;
+        case 3:
+            return "disk3";
+            break;
+        default:
+            return "";
+    }
+}
+// Configuración del estilo de la aguja
+function agujaTipo(value) {
+    switch(value){
+        case 1:
+            return "arm1";
+            break;
+        case 2:
+            return "arm2";
+            break;
+        case 3:
+            return "arm3";
+            break;
+        default:
+            return "";
+    }
+}
+
+// Tipo de reproductor, dos opciones: 'playlist' o 'stream'
+const ReproductorTipo = {
+        get Playlist(){ return 1; },
+        get Stream(){ return 2; }
     },
     // Configuración del tipo de reproducción
-    reproductionType = {
+    EstiloReproduccion = {
         get Linear(){ return 1; }, // Reproducir de inicio a fin
         get LinearLoop(){ return 2; }, // Reproducir de inico a fin y repetir
         get Shuffle(){ return 3; } // Reproducir revolviendo la lista
     },
     // Tipo de visualización del tiempo final de la reproducción
-    lastTimeType = {
-        get TotalTime(){ return 1; }, // Muestra el tiempo total de reproducción
-        get RemainingTime(){ return 2; } // Muestra el tiempo restante de la reproducción
+    TiempoFinal = {
+        get TiempoTotal(){ return 1; }, // Muestra el tiempo total de reproducción
+        get TiempoRestante(){ return 2; } // Muestra el tiempo restante de la reproducción
     };
 
-const Turntable = {
-    disk: diskStyle.Disk1, // Estilo del disco
-    arm: armStyle.Arm2, // Estilo de la aguja
-    playerType: playerType.Playlist, // Tipo de reproductor
-    reproductionType: reproductionType.Linear, // Tipo de reproducción
-    lastTimeType: lastTimeType.TotalTime, // Tipo de tiempo final
-    source: SONGS, // Recurso a reproducir, lista de canciones para la opción de 'playlist' o la url para la opción de 'stream'
-    streamTime: 3600 // Tiempo de duración en segundos para el tipo de reproducción de radio, 1 hora = 3600 segundos
+const Tocadiscos = {
+    disco: 1, // Estilo del disco 1, 2, 3
+    aguja: 1, // Estilo de la aguja 1, 2, 3
+    reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
+    estiloReproduccion: 1, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
+    tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
+    canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
+    mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
+    valorTimepoGeneral: 3600 // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
 };
 
 // Declaraciones para el audio
@@ -129,11 +151,11 @@ function onCurrentTimeInterval() {
             }
         }));
 
-        if(Turntable.lastTimeType === lastTimeType.RemainingTime){
-            let durationTotal = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
+        if(Tocadiscos.tiempoFinal == TiempoFinal.TiempoRestante){
+            let durationTotal = (Tocadiscos.reproductorTipo === ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTimepoGeneral;
             
             lastTimeIndicator.dispatchEvent(
-                new CustomEvent('updateremainingtime', {
+                new CustomEvent('updateTiempoRestante', {
                     detail: {
                         duration: durationTotal - currentTime
                     },
@@ -144,12 +166,14 @@ function onCurrentTimeInterval() {
     }
 }
 
-function onUpdateRemainingTime(e) {
+function onUpdateTiempoRestante(e) {
     lastTimeIndicator.innerHTML = getReadableTime(e.detail.duration);
 }
 
 function onLoadPlayerData() {
-    let duration = (Turntable.playerType === playerType.Playlist) ? player.duration : Turntable.streamTime;
+    let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTimepoGeneral;
+
+    duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTimepoGeneral : duration;
     
     lastTimeIndicator.innerHTML = getReadableTime(duration);
     arm.style.animationDuration = duration + "s";
@@ -158,23 +182,23 @@ function onLoadPlayerData() {
 
 function onPlayPlayer() {
     if(!isStarted){
-        if(Turntable.playerType === playerType.Playlist){
-            if(Turntable.source.length > 0){
-                if(Turntable.reproductionType === reproductionType.Shuffle){
-                    Turntable.source.shuffle();
+        if(Tocadiscos.reproductorTipo === ReproductorTipo.Playlist){
+            if(Tocadiscos.canciones.length > 0){
+                if(Tocadiscos.reproductorTipo === EstiloReproduccion.Shuffle){
+                    Tocadiscos.canciones.shuffle();
                     console.log("----- Lista Inicial -----");
-                    console.log(Turntable.source);
+                    console.log(Tocadiscos.canciones);
                 }
 
                 currentSong = {
                     index: 0,
-                    path: Turntable.source[0].path
+                    path: Tocadiscos.canciones[0].path
                 };
             }
-        }else if(Turntable.playerType === playerType.Stream){
+        }else if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
             currentSong = {
                 index: -1,
-                path: Turntable.source
+                path: Tocadiscos.canciones
             }
         }
 
@@ -186,34 +210,34 @@ function onPlayPlayer() {
 function onEndedPlayerData() {
     onClickBtnStop();
     
-    let playlistLength = Turntable.source.length,
+    let playlistLength = Tocadiscos.canciones.length,
         currentSongIndex = currentSong.index;
 
-    if(Turntable.playerType === playerType.Playlist) {
+    if(Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) {
         // Si esta en modo LinearLoop o Shuffle, reinicia la reproducción de la lista al inicio
-        if(Turntable.reproductionType !== reproductionType.Linear){
-            currentSongIndex = (currentSongIndex + 1 === playlistLength) ? -1 : currentSongIndex;
+        if(Tocadiscos.estiloReproduccion != EstiloReproduccion.Linear){
+            currentSongIndex = (currentSongIndex + 1 == playlistLength) ? -1 : currentSongIndex;
 
             if(currentSongIndex === -1){
-                oldShuffleSongs = Array.from(Turntable.source);
+                oldShuffleSongs = Array.from(Tocadiscos.canciones);
 
                 let lastSOngFromOldList = oldShuffleSongs[oldShuffleSongs.length - 1];
 
                 do{
-                    Turntable.source.shuffle();
-                }while(Turntable.source[0] === lastSOngFromOldList);
+                    Tocadiscos.canciones.shuffle();
+                }while(Tocadiscos.canciones[0] === lastSOngFromOldList);
 
                 console.log("----- Lista Antigua -----");
                 console.log(oldShuffleSongs);
                 console.log("----- Lista Nueva -----");
-                console.log(Turntable.source);
+                console.log(Tocadiscos.canciones);
             }
         }
 
         if(currentSongIndex < playlistLength - 1){
             currentSong = {
                 index: (currentSongIndex + 1),
-                path: Turntable.source[currentSongIndex + 1].path
+                path: Tocadiscos.canciones[currentSongIndex + 1].path
             }
 
             player.src = currentSong.path;
@@ -267,8 +291,8 @@ function onClickBtnStop(e) {
 window.addEventListener("load", function () {
     // Cargar configuraciones del tocadiscos
     (function(){
-        disk.classList.add(Turntable.disk);
-        arm.classList.add(Turntable.arm);
+        disk.classList.add(discoTipo(Tocadiscos.disco));
+        arm.classList.add(agujaTipo(Tocadiscos.aguja));
     })();
 
     player.onloadeddata = onLoadPlayerData;
@@ -281,5 +305,5 @@ window.addEventListener("load", function () {
 
     btnStop.on("click", onClickBtnStop);
 
-    lastTimeIndicator.on("updateremainingtime", onUpdateRemainingTime);
+    lastTimeIndicator.on("updateTiempoRestante", onUpdateTiempoRestante);
 });
