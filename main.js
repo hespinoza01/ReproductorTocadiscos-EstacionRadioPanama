@@ -329,21 +329,27 @@ function onClickBtnStop(e) {
 function onClickDisk(e) {
     if(Tocadiscos.moverAguja == 1){
         let screenX = e.screenX,
+        screenY = e.screenY,
         clientRect = diskClientRect,
-        min = 130,
-        max = clientRect.width,
-        distance =screenX - clientRect.left;
+        minX = 136,
+        maxX = clientRect.width,
+        minY = clientRect.top + (clientRect.height / 2),
+        maxY = minY + 75,
+        distance = {
+            x: screenX - clientRect.left,
+            y: screenY - clientRect.top
+        };
 
         let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTiempoGeneral;
 
         duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : duration;
+        //console.log(distance);
+        if(distance.x >= minX && (distance.y >= minY && distance.y <= maxY)){
+            distance = Math.abs((distance.x - minX) - (maxX - minX));
+            maxX = maxX - minX;
 
-        if(distance >= min){
-            distance = Math.abs((distance - min) - (max - min));
-            max = max - min;
-
-            let newCurrentTime = distance * duration / max;
-            //console.log(newCurrentTime, distance, `min: ${min}`, `max: ${max}`, clientRect);
+            let newCurrentTime = Math.floor(distance * duration / maxX);
+            //console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`, clientRect);
 
             onClickBtnStart();
             player.currentTime = newCurrentTime;

@@ -165,6 +165,7 @@ body{
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
+    pointer-events: none;
     transform-origin: 95% 0%;
     transition: transform .5s;
 }
@@ -188,42 +189,6 @@ body{
     transform-origin: 90% 20%;
     transform: rotate(-47deg);
 }
-/*.arm1.active{
-    transform: rotate(-15deg);
-    animation: turntable-arm-spin linear 4s 2s alternate infinite;
-}
-.arm2.active{
-    transform: rotate(-12deg);
-    animation: turntable-arm2-spin linear 4s 2s alternate infinite;
-}
-.arm3.active{
-    transform: rotate(-30deg);
-    animation: turntable-arm3-spin linear 4s 2s alternate infinite;
-}
-@keyframes turntable-arm-spin{
-    from{
-        transform: rotate(-15deg);
-    }
-    to{
-        transform: rotate(4deg);
-    }
-}
-@keyframes turntable-arm2-spin{
-    from{
-        transform: rotate(-12deg);
-    }
-    to{
-        transform: rotate(12deg);
-    }
-}
-@keyframes turntable-arm3-spin{
-    from{
-        transform: rotate(-30deg);
-    }
-    to{
-        transform: rotate(-13deg);
-    }
-}*/
 
 .turntable-controls{
     display: flex;
