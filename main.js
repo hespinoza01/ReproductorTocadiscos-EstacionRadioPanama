@@ -328,28 +328,28 @@ function onClickBtnStop(e) {
 // Adelantar y retroceder la pista
 function onClickDisk(e) {
     if(Tocadiscos.moverAguja == 1){
-        let screenX = e.screenX,
-        screenY = e.screenY,
-        clientRect = diskClientRect,
+        let screenX = e.x,
+        screenY = e.y,
+        //clientRect = disk.of,
         minX = 136,
-        maxX = clientRect.width,
-        minY = clientRect.top + (clientRect.height / 2),
-        maxY = minY + 75,
+        maxX = disk.offsetWidth,
+        minY = 61,
+        maxY = disk.offsetHeight - 61,
         distance = {
-            x: screenX - clientRect.left,
-            y: screenY - clientRect.top
+            x: screenX - (disk.offsetParent.offsetLeft + disk.offsetLeft),
+            y: screenY - (disk.offsetParent.offsetTop + disk.offsetTop)
         };
 
         let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTiempoGeneral;
 
         duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : duration;
-        //console.log(distance);
+        console.log(distance, minY, maxY);
         if(distance.x >= minX && (distance.y >= minY && distance.y <= maxY)){
             distance = Math.abs((distance.x - minX) - (maxX - minX));
             maxX = maxX - minX;
 
             let newCurrentTime = Math.floor(distance * duration / maxX);
-            //console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`, clientRect);
+            console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`);
 
             onClickBtnStart();
             player.currentTime = newCurrentTime;
