@@ -14,7 +14,8 @@ let currentSong = { index: -1, path: '' },
     currentTime = 0,
     diskClientRect = null,
     rotationIncrement = 0,
-    currentTimeInterval = null;
+    currentTimeInterval = null,
+    songIndex = 0;
 
 // Arreglo con la lista de las canciones
 const SONGS = new Array(
@@ -111,7 +112,7 @@ const Tocadiscos = {
     disco: 1, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
     reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
-    estiloReproduccion: 1, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
+    estiloReproduccion: 2, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
     tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
     moverAguja: 1, // Mover aguja para adelantar/retrasar pista 1=si, 0=no
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
@@ -216,7 +217,9 @@ function onLoadPlayerData() {
     
     lastTimeIndicator.innerHTML = getReadableTime(duration);
     rotationIncrement = agujaRotacion(Tocadiscos.aguja).deg / duration;
-    arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)';
+    setTimeout(function(){ 
+        arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)'; 
+    }, 1500);
     isLoaded = true;
 }
 
@@ -231,8 +234,8 @@ function onPlayPlayer() {
                 }
 
                 currentSong = {
-                    index: 0,
-                    path: Tocadiscos.canciones[0].path
+                    index: songIndex,
+                    path: Tocadiscos.canciones[songIndex].path
                 };
             }
         }else if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
@@ -243,22 +246,27 @@ function onPlayPlayer() {
         }
 
         player.src = currentSong.path;
+        player.play();
         isStarted = true;
     }
 }
 
 function onEndedPlayerData() {
-    onClickBtnStop();
+    Clean();
     
-    let playlistLength = Tocadiscos.canciones.length,
-        currentSongIndex = currentSong.index;
+    let playlistLength = Tocadiscos.canciones.length;
 
     if(Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) {
+        if(songIndex == playlistLength && EstiloReproduccion.Linear){
+            onClickBtnStop();
+            return;
+        }
+
         // Si esta en modo LinearLoop o Shuffle, reinicia la reproducción de la lista al inicio
         if(Tocadiscos.estiloReproduccion != EstiloReproduccion.Linear){
-            currentSongIndex = (currentSongIndex + 1 == playlistLength) ? -1 : currentSongIndex;
+            songIndex = (songIndex + 1 == playlistLength) ? -1 : songIndex;
 
-            if(currentSongIndex === -1){
+            if(songIndex == -1 && Tocadiscos.estiloReproduccion == EstiloReproduccion.Shuffle){
                 oldShuffleSongs = Array.from(Tocadiscos.canciones);
 
                 let lastSOngFromOldList = oldShuffleSongs[oldShuffleSongs.length - 1];
@@ -274,14 +282,14 @@ function onEndedPlayerData() {
             }
         }
 
-        if(currentSongIndex < playlistLength - 1){
+        if(songIndex < playlistLength - 1){
+            songIndex++;
             currentSong = {
-                index: (currentSongIndex + 1),
-                path: Tocadiscos.canciones[currentSongIndex + 1].path
+                index: songIndex,
+                path: Tocadiscos.canciones[songIndex].path
             }
 
             player.src = currentSong.path;
-            arm.style.transform = '';
             setTimeout(onClickBtnStart, 2000);
         }
     }
@@ -308,12 +316,18 @@ function onUpdateProgressSong(e){
 }
 
 function onClickBtnStop(e) {
+    isStarted = false;
+    songIndex = 0;
+
+    Clean();
+}
+
+function Clean() {
     player.pause();
     player.duration = 0;
 
     clearInterval(currentTimeInterval);
     currentTime = 0;
-    isStarted = false;
     rotationIncrement = 0;
 
     currentTimeIndicator.innerHTML = getReadableTime(0);
@@ -343,13 +357,13 @@ function onClickDisk(e) {
         let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTiempoGeneral;
 
         duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : duration;
-        console.log(distance, minY, maxY);
+        //console.log(distance, minY, maxY);
         if(distance.x >= minX && (distance.y >= minY && distance.y <= maxY)){
             distance = Math.abs((distance.x - minX) - (maxX - minX));
             maxX = maxX - minX;
 
             let newCurrentTime = Math.floor(distance * duration / maxX);
-            console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`);
+            //console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`);
 
             onClickBtnStart();
             player.currentTime = newCurrentTime;
