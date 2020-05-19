@@ -165,9 +165,12 @@ body{
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
-    pointer-events: none;
+    /*pointer-events: none;*/
     transform-origin: 95% 0%;
     transition: transform .5s;
+}
+.turntable-arm:hover{
+    cursor: pointer;
 }
 .arm1{
     background-image: url("./img/brazo1.png");

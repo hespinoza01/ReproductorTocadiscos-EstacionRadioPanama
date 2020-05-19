@@ -11,6 +11,7 @@ const disk = document.getElementById("disk"),
 let currentSong = { index: -1, path: '' },
     isStarted = false,
     isLoaded= false,
+    isMovingArm = false,
     currentTime = 0,
     diskClientRect = null,
     rotationIncrement = 0,
@@ -177,8 +178,10 @@ function getReadableTime(duration) {
 }
 
 function onCurrentTimeInterval() {
+    currentTime = player.currentTime;
+
     if(currentTime < player.duration - 1) {
-        currentTime++;
+        //currentTime++;
         currentTimeIndicator.innerHTML = getReadableTime(currentTime);
         arm.dispatchEvent(new CustomEvent('updaterotationarm', {
             detail: {
@@ -187,7 +190,7 @@ function onCurrentTimeInterval() {
         }));
         progressIndicator.dispatchEvent(new CustomEvent('updateprogresssong', {
             detail: {
-                value: Math.floor((currentTime * 100) / player.duration)
+                value: Math.floor((currentTime * 100) / (player.duration - 1))
             }
         }));
 
@@ -217,10 +220,13 @@ function onLoadPlayerData() {
     
     lastTimeIndicator.innerHTML = getReadableTime(duration);
     rotationIncrement = agujaRotacion(Tocadiscos.aguja).deg / duration;
-    setTimeout(function(){ 
-        arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)'; 
-    }, 1500);
     isLoaded = true;
+    
+    if(isStarted) {
+        setTimeout(function(){ 
+            arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)'; 
+        }, 1500);
+    }
 }
 
 function onPlayPlayer() {
@@ -247,8 +253,20 @@ function onPlayPlayer() {
 
         player.src = currentSong.path;
         player.play();
+        arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)';
         isStarted = true;
     }
+
+    //currentTimeInterval = setInterval(onCurrentTimeInterval, 1000);
+    btnStart.classList.add("to_pause");
+    disk.classList.add("active");
+    disk.style.animationPlayState = "running";
+}
+
+function onPausePlayer() {
+    //clearInterval(currentTimeInterval);
+    btnStart.classList.remove("to_pause");
+    disk.style.animationPlayState = "paused";
 }
 
 function onEndedPlayerData() {
@@ -298,15 +316,8 @@ function onEndedPlayerData() {
 function onClickBtnStart(e) {
     if(btnStart.classList.contains("to_pause")){
         player.pause();
-        clearInterval(currentTimeInterval);
-        btnStart.classList.remove("to_pause");
-        disk.style.animationPlayState = "paused";
     }else{
         player.play();
-        currentTimeInterval = setInterval(onCurrentTimeInterval, 1000);
-        btnStart.classList.add("to_pause");
-        disk.classList.add("active");
-        disk.style.animationPlayState = "running";
     }
 }
 
@@ -340,17 +351,40 @@ function Clean() {
 }
 
 // Adelantar y retroceder la pista
+function onMouseDownArm(e) {
+    player.pause();
+    arm.style.cursor = "col-resize";
+    isMovingArm = true;
+    //console.log("down", e);
+}
+
+function onMouseMoveArm(e) {
+    if(isMovingArm)
+        onClickDisk({x: e.x, y: e.y});
+}
+
+function onMouseUpArm(e) {
+    player.play();
+    arm.style.cursor = "";
+    isMovingArm = false;
+    //console.log("up", e);
+}
+
 function onClickDisk(e) {
-    if(Tocadiscos.moverAguja == 1){
-        let screenX = e.x,
+    if(Tocadiscos.moverAguja == 1 && !player.paused){
+        let newCurrentTime = 0;
+        screenX = e.x,
         screenY = e.y,
+        offsetLeft = disk.offsetParent.offsetLeft + disk.offsetLeft,
         //clientRect = disk.of,
         minX = 136,
         maxX = disk.offsetWidth,
         minY = 61,
         maxY = disk.offsetHeight - 61,
+        moveMaxX = offsetLeft + minX,
+        moveMinX = offsetLeft + maxX,
         distance = {
-            x: screenX - (disk.offsetParent.offsetLeft + disk.offsetLeft),
+            x: screenX - offsetLeft,
             y: screenY - (disk.offsetParent.offsetTop + disk.offsetTop)
         };
 
@@ -358,17 +392,17 @@ function onClickDisk(e) {
 
         duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : duration;
         //console.log(distance, minY, maxY);
-        if(distance.x >= minX && (distance.y >= minY && distance.y <= maxY)){
+        
+        if((distance.x >= minX && distance.x <= maxX) && (distance.y >= minY && distance.y <= maxY)){
             distance = Math.abs((distance.x - minX) - (maxX - minX));
             maxX = maxX - minX;
 
-            let newCurrentTime = Math.floor(distance * duration / maxX);
+            newCurrentTime = Math.floor(distance * duration / maxX);
+            newCurrentTime = (newCurrentTime > duration) ? duration : (newCurrentTime < 0) ? 0 : newCurrentTime;
             //console.log(newCurrentTime, distance, `min: ${minX}`, `max: ${maxX}`);
 
-            onClickBtnStart();
             player.currentTime = newCurrentTime;
             currentTime = newCurrentTime;
-            onClickBtnStart();
         }
     }
 }
@@ -392,17 +426,26 @@ window.addEventListener("load", function () {
 
     diskClientRect = disk.getBoundingClientRect();
 
-    player.onloadeddata = onLoadPlayerData;
-    player.onplay = onPlayPlayer;
-    player.onended = onEndedPlayerData;
+    player
+        .on("loadeddata", onLoadPlayerData)
+        .on("timeupdate", onCurrentTimeInterval)
+        .on("play", onPlayPlayer)
+        .on("pause", onPausePlayer)
+        .on("ended", onEndedPlayerData);
 
-    disk.on("click", onClickDisk);
+    //disk.on("click", onClickDisk);
 
     btnStart.on("click", onClickBtnStart);
 
     progressIndicator.on("updateprogresssong", onUpdateProgressSong);
 
-    arm.on('updaterotationarm', onUpdateRotationArm);
+    arm
+        .on('updaterotationarm', onUpdateRotationArm)
+        .on("mousedown", onMouseDownArm)
+        .on("mousemove", onMouseMoveArm)
+        .on("mouseup", onMouseUpArm);
+
+    //document.body.on("mousemove", onMouseMoveArm);
 
     btnStop.on("click", onClickBtnStop);
 
