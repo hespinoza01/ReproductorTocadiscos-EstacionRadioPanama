@@ -20,6 +20,9 @@ let currentSong = { index: -1, path: '' },
 
 // Arreglo con la lista de las canciones
 const SONGS = new Array(
+    {path:"https://vk.com/doc297826490_503417139",artist:"Nacho",song:"Bailame"},
+    {path:"./canciones/010.txt",artist:"Nacho",song:"Bailame"},
+    {path:"./canciones/011.json",artist:"Nacho",song:"Bailame"},
     {path:"./canciones/011.mp3",artist:"Nacho",song:"Bailame"},
     {path:"./canciones/012.mp3",artist:"Chino y Nacho ft. Daddy Yankee",song:"Andas en mi cabeza"},
     {path:"./canciones/013.mp3",artist:"Danny Ocean",song:"Me rehuso"},
@@ -121,10 +124,6 @@ const Tocadiscos = {
     valorTiempoGeneral: 3600 // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
 };
 
-// Declaraciones para el audio
-let player = new Audio(),
-    oldShuffleSongs = new Array();
-
 
 // Prototipo de la función shuffle para crear el arreglo aleatorio de las canciones
 Array.prototype.shuffle = function() {
@@ -153,6 +152,33 @@ window.Node.prototype.on = function(eventType, callback){
 };
 window.on = window.Node.prototype.on;
 
+// Ajax Prototypes
+window.XMLHttpRequest.prototype.on = window.on;
+window.$ajax = window.XMLHttpRequest;
+
+// Declaraciones para el audio
+let player = new Audio(),
+    oldShuffleSongs = new Array();
+
+// Audio Prototypes
+// - Load array of song's
+player.songIndex = -1;
+player.sourceList = null;
+player.source = function(src) {
+    if(src === undefined || (typeof src !== "string" && typeof src !== "object")) return;
+
+    this.songIndex = 0;
+    this.sourceList = src;
+}
+
+player.next = function() {
+    if(this.songIndex < this.sourceList.length - 1){
+        this.songIndex++;
+        player.src = this.sourceList[this.songIndex].path;
+        setTimeout(onClickBtnStart, 2000);
+    }
+}
+
 
 /***********************
 **      Eventos       **
@@ -175,6 +201,28 @@ function getReadableTime(duration) {
         tiempo = horas + "<span style='color: yellow'>:</span>" + minutos + "<span style='color: yellow'>:</span>" + segundos;
     }
     return tiempo;
+}
+
+function setSource(source) {
+    return new Promise((resolve, reject) => {
+        if(source.match(/\w+.(txt|json|js)/g) || source.match(/^(ftp|http|https):\/\/[^ "]+[^mp3|ogg|wav]$/g)){
+            let script = document.createElement("script");
+
+            script.onload = _ => {
+                player.src = base64;
+                script.remove();
+                resolve();
+            }
+
+            script.src = source;
+            document.body.appendChild(script);
+        }else if(source.match(/.+(mp3|ogg|wav)/g)){
+            player.src = source;
+            resolve();
+        }else{
+            reject();
+        }
+    });
 }
 
 function onCurrentTimeInterval() {
@@ -251,8 +299,9 @@ function onPlayPlayer() {
             }
         }
 
-        player.src = currentSong.path;
-        player.play();
+        setSource(currentSong.path)
+            .then(() => player.play())
+            .catch(() => console.error("Error on load source: ", currentSong.path));
         arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)';
         isStarted = true;
     }
@@ -307,8 +356,9 @@ function onEndedPlayerData() {
                 path: Tocadiscos.canciones[songIndex].path
             }
 
-            player.src = currentSong.path;
-            setTimeout(onClickBtnStart, 2000);
+            setSource(currentSong.path)
+                .then(() => setTimeout(onClickBtnStart, 2000))
+                .catch(() => console.error("Error on load source: ", currentSong.path));
         }
     }
 }
@@ -371,7 +421,7 @@ function onMouseUpArm(e) {
 }
 
 function onClickDisk(e) {
-    if(Tocadiscos.moverAguja == 1 && !player.paused){
+    if(Tocadiscos.moverAguja == 1 && player.paused){
         let newCurrentTime = 0;
         screenX = e.x,
         screenY = e.y,
@@ -418,6 +468,8 @@ function onUpdateRotationArm(e) {
 
 // Código a ejecutar después de terminar de cargar la página
 window.addEventListener("load", function () {
+    //player.prototype.source = onSourcePlayer;
+
     // Cargar configuraciones del tocadiscos
     (function(){
         disk.classList.add(discoTipo(Tocadiscos.disco));
