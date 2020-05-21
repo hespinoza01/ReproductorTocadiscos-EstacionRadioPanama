@@ -50,7 +50,7 @@ html, body{
 body{
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .turntable{
@@ -87,7 +87,7 @@ body{
     background-size: 50% 100%, 100% 50%, 100% 100%;
 }
 .turntable-disk.active{
-    animation: turntable-disk-spin 10s linear infinite;
+    animation: turntable-disk-spin 1777ms linear infinite;
 }
 @keyframes turntable-disk-spin{
     0%{

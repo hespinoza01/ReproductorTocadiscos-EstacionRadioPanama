@@ -21,14 +21,14 @@ let currentSong = { index: -1, path: '' },
 
 // Arreglo con la lista de las canciones
 const SONGS = new Array(
-    {path: "https://vk.com/doc297826490_503417139", artist: "Nacho", song: "Bailame", duration: 207.877333},
-    {path: "./canciones/010.txt", artist: "Nacho", song: "Bailame", duration: 279.048},
-    {path: "./canciones/011.json", artist: "Nacho", song: "Bailame", duration: 287.701333},
-    {path: "./canciones/011.mp3", artist: "Nacho", song: "Bailame", duration: 249.816},
-    {path: "./canciones/012.mp3", artist: "Chino y Nacho ft. Daddy Yankee", song: "Andas en mi cabeza", duration: 266.4064},
-    {path: "./canciones/013.mp3", artist: "Danny Ocean", song: "Me rehuso", duration: 223.172125},
-    {path: "./canciones/014.mp3", artist: "Danny Ocean", song: "Dembow", duration: 263.496},
-    {path: "./canciones/015.mp3", artist: "Danny Ocean", song: "Vuelve", duration: 219.744}
+    {path: "https://vk.com/doc297826490_503417139", artist: "Nacho", song: "Bailame", duration: "03:27"},
+    {path: "./canciones/010.txt", artist: "Nacho", song: "Bailame", duration: "04:39"},
+    {path: "./canciones/011.json", artist: "Nacho", song: "Bailame", duration: "04:47"},
+    {path: "./canciones/011.mp3", artist: "Nacho", song: "Bailame", duration: "04:09"},
+    {path: "./canciones/012.mp3", artist: "Chino y Nacho ft. Daddy Yankee", song: "Andas en mi cabeza", duration: "04:26"},
+    {path: "./canciones/013.mp3", artist: "Danny Ocean", song: "Me rehuso", duration: "03:43"},
+    {path: "./canciones/014.mp3", artist: "Danny Ocean", song: "Dembow", duration: "04:23"},
+    {path: "./canciones/015.mp3", artist: "Danny Ocean", song: "Vuelve", duration: "03:39"}
  );
 
 
@@ -123,7 +123,7 @@ const Tocadiscos = {
     moverAguja: 1, // Mover aguja para adelantar/retrasar pista 1=si, 0=no
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
-    valorTiempoGeneral: 3600 // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    valorTiempoGeneral: "01:00:00" // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
 };
 
 
@@ -159,44 +159,9 @@ window.XMLHttpRequest.prototype.on = window.on;
 window.$ajax = window.XMLHttpRequest;
 
 // Declaraciones para el audio
-let player = new Audio(),
+let player = null,
     oldShuffleSongs = new Array();
 
-// Audio Prototypes
-// - Load array of song's
-player.songIndex = -1;
-player.sourceList = null;
-player.source = function(src) {
-    if(src === undefined || (typeof src !== "string" && typeof src !== "object")) return;
-
-    this.songIndex = 0;
-    this.sourceList = src;
-}
-
-player.next = function() {
-    if(this.songIndex < this.sourceList.length - 1){
-        this.songIndex++;
-        player.src = this.sourceList[this.songIndex].path;
-        setTimeout(onClickBtnStart, 2000);
-    }
-}
-
-// Detener la reproducción
-player.isStop = true;
-player.stop =function() {
-    this.isStop = true;
-    isStarted = false;
-    songIndex = 0;
-    acumulateTime = 0;
-    currentTime = 0;
-    rotationIncrement = 0;
-    Clean();
-
-    setTimeout(() => {
-        currentTimeIndicator.innerHTML = getReadableTime(0);
-        arm.style.transform = '';
-    }, 10);
-}
 
 
 /***********************
@@ -223,8 +188,28 @@ function getReadableTime(duration) {
     return tiempo;
 }
 
+// Convertir el tiempo del formato "00:00:00" a segundos
+function getSecondsTime(duration) {
+    if(typeof duration === "number") return duration;
+    if(typeof duration !== "string") return 0;
+
+    duration = duration.split(":");
+    let time = 0;
+
+    if(duration.length === 2) {
+        time += Number(duration[0]) * 60;
+        time += Number(duration[1]);
+    } else if(duration.length === 3) {
+        time += Number(duration[0]) * 3600;
+        time += Number(duration[1]) * 60;
+        time += Number(duration[2]);
+    }
+
+    return time;
+}
+
 // carga el recurso de la pista, ya sea la direción del mp3 o el base64
-function setSource(source, audio) {
+function setSource(source) {
     return new Promise((resolve, reject) => {
         // Si la dirección contiene extensión js|txt|json o si es una url normal sin extensión
         // Se carga el valor del base64
@@ -232,7 +217,7 @@ function setSource(source, audio) {
             let script = document.createElement("script");
 
             script.onload = _ => {
-                audio.src = base64;
+                player.src = base64;
                 script.remove();
                 resolve();
             }
@@ -241,7 +226,7 @@ function setSource(source, audio) {
             document.body.appendChild(script);
         }else if(source.match(/.+(mp3|ogg|wav)/g)){
             // cargar el archivo .mp3
-            audio.src = source;
+            player.src = source;
             resolve();
         }else{
             // capturar un error
@@ -252,11 +237,13 @@ function setSource(source, audio) {
 
 // Actualizar las etiquetas y tiempos a partir del tiempo actual de la pista
 function onCurrentTimeInterval() {
-    let duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : player.duration;
+    let duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? getSecondsTime(Tocadiscos.valorTiempoGeneral) : player.duration;
 
     currentTime = (Tocadiscos.mostrarTiempoGeneral == 1) ? acumulateTime + player.currentTime : player.currentTime;
-
-    if(currentTime < duration - 1) {
+   
+    //currentTime++;
+    //console.log(currentTime, player.currentTime);
+    if(currentTime < duration) {
         //currentTime++;
         currentTimeIndicator.innerHTML = getReadableTime(currentTime);
         // Actualizar la rotación del brazo
@@ -274,7 +261,7 @@ function onCurrentTimeInterval() {
 
         // Para actualizar el tiempo restante si está habilitado
         if(Tocadiscos.tiempoFinal == TiempoFinal.TiempoRestante){
-            let durationTotal = (Tocadiscos.reproductorTipo === ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTiempoGeneral;
+            let durationTotal = (Tocadiscos.reproductorTipo === ReproductorTipo.Playlist) ? player.duration : getSecondsTime(Tocadiscos.valorTiempoGeneral);
             
             lastTimeIndicator.dispatchEvent(
                 new CustomEvent('updateTiempoRestante', {
@@ -295,9 +282,9 @@ function onUpdateTiempoRestante(e) {
 
 // Al cargar la pista actual, carga la duración y calcula el ángulo de rotación del brazo
 function onLoadPlayerData() {
-    let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : Tocadiscos.valorTiempoGeneral;
+    let duration = (Tocadiscos.reproductorTipo == ReproductorTipo.Playlist) ? player.duration : getSecondsTime(Tocadiscos.valorTiempoGeneral);
 
-    duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? Tocadiscos.valorTiempoGeneral : duration;
+    duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? getSecondsTime(Tocadiscos.valorTiempoGeneral) : duration;
     
     lastTimeIndicator.innerHTML = getReadableTime(duration);
     rotationIncrement = agujaRotacion(Tocadiscos.aguja).deg / duration;
@@ -339,7 +326,7 @@ function onPlayPlayer() {
             }
         }
 
-        setSource(currentSong.path, player)
+        setSource(currentSong.path)
             .then(() => player.play())
             .catch(() => console.error("Error on load source: ", currentSong.path));
         arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)';
@@ -372,7 +359,8 @@ function onEndedPlayerData() {
         currentTime = oldTime;
         arm.style.transform = armTransform;
         acumulateTime += player.duration;
-        currentTimeIndicator.textContent = getReadableTime(currentTime);
+        currentTimeIndicator.innerHTML = getReadableTime(currentTime);
+        lastTimeIndicator.innerHTML = getReadableTime(Tocadiscos.valorTiempoGeneral);
     }
     
     let playlistLength = Tocadiscos.canciones.length;
@@ -412,9 +400,11 @@ function onEndedPlayerData() {
                 path: Tocadiscos.canciones[songIndex].path
             }
 
-            setSource(currentSong.path, player)
-                .then(() => setTimeout(onClickBtnStart, timeOutValue))
-                .catch(() => console.error("Error on load source: ", currentSong.path));
+            setTimeout(() => {
+                setSource(currentSong.path)
+                    .then(() => player.play())
+                    .catch(() => console.error("Error on load source: ", currentSong.path));
+            }, 2000);
         }
     }
 }
@@ -425,7 +415,7 @@ function getTotalDurationForPlaylist() {
         let durationSum = 0;
 
         for(let i=0; i < Tocadiscos.canciones.length; i++){
-            durationSum += Tocadiscos.canciones[i].duration;
+            durationSum += getSecondsTime(Tocadiscos.canciones[i].duration);
             Tocadiscos.valorTiempoGeneral = durationSum;
         }
 
@@ -439,9 +429,9 @@ function getTotalDurationForPlaylist() {
 // Presionar el botón de inicio/pausa
 function onClickBtnStart(e) {
     if(btnStart.classList.contains("to_pause")){
-        onPausePlayer();
+        player.pause();
     }else{
-        onPlayPlayer();
+        player.play();
     }
 }
 
@@ -454,6 +444,7 @@ function onUpdateProgressSong(e){
 // Presionar el botón de detener
 function onClickBtnStop(e) {
     player.stop();
+    player = new _Audio();
 }
 
 // Reinicar los valores de las distintas etiquetas
@@ -544,6 +535,40 @@ function onUpdateRotationArm(e) {
     arm.style.transform = 'rotate('+ rotate +'deg)';
 }
 
+// Audio Prototypes
+function _Audio() {
+    let _audio = new Audio();
+
+    // - Load array of song's
+    _audio.songIndex = -1;
+    // Detener la reproducción
+    _audio.isStop = true;
+    _audio.stop =function() {
+        this.isStop = true;
+        isStarted = false;
+        songIndex = 0;
+        acumulateTime = 0;
+        currentTime = 0;
+        rotationIncrement = 0;
+        Clean();
+
+        setTimeout(() => {
+            currentTimeIndicator.innerHTML = getReadableTime(0);
+            arm.style.transform = '';
+            progressIndicator.textContent = "0 %"
+        }, 10);
+    }
+
+    _audio
+        .on("loadeddata", onLoadPlayerData)
+        .on("timeupdate", onCurrentTimeInterval)
+        .on("play", onPlayPlayer)
+        .on("pause", onPausePlayer)
+        .on("ended", onEndedPlayerData);
+
+    return _audio;
+}
+
 
 // Código a ejecutar después de terminar de cargar la página
 window.addEventListener("load", function () {
@@ -557,13 +582,7 @@ window.addEventListener("load", function () {
     })();
 
     diskClientRect = disk.getBoundingClientRect();
-
-    player
-        .on("loadeddata", onLoadPlayerData)
-        .on("timeupdate", onCurrentTimeInterval)
-        .on("play", onPlayPlayer)
-        .on("pause", onPausePlayer)
-        .on("ended", onEndedPlayerData);
+    player = new _Audio();
 
     //disk.on("click", onClickDisk);
 
