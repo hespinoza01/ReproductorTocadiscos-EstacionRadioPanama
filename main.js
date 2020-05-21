@@ -71,25 +71,25 @@ function agujaRotacion(value) {
         case 1:
             // arm1
             return {
-                inicio: -15,
-                fin: 4,
-                deg: 20
+                inicio: (Tocadiscos.disco !== 2) ? -15 : -12,
+                fin: (Tocadiscos.disco !== 2) ? 4 : 0,
+                deg: (Tocadiscos.disco !== 2) ? 20 : 13
             };
             break;
         case 2:
             // arm2
             return {
-                inicio: -12,
-                fin: 12,
-                deg: 20
+                inicio: (Tocadiscos.disco !== 2) ? -12 : -8,
+                fin: (Tocadiscos.disco !== 2) ? 12 : 8,
+                deg: (Tocadiscos.disco !== 2) ? 25 : 17
             };
             break;
         case 3:
             // arm3
             return {
-                inicio: -30,
-                fin: -13,
-                deg: 17
+                inicio: (Tocadiscos.disco !== 2) ? -30 : -28,
+                fin: (Tocadiscos.disco !== 2) ? -13 : -15,
+                deg: (Tocadiscos.disco !== 2) ? 17 : 13
             };;
             break;
         default:
@@ -115,7 +115,7 @@ const ReproductorTipo = {
     };
 
 const Tocadiscos = {
-    disco: 1, // Estilo del disco 1, 2, 3
+    disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
     reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
     estiloReproduccion: 2, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
@@ -495,8 +495,8 @@ function onClickDisk(e) {
         screenY = e.y,
         offsetLeft = disk.offsetParent.offsetLeft + disk.offsetLeft,
         //clientRect = disk.of,
-        minX = 136,
-        maxX = disk.offsetWidth,
+        minX = (Tocadiscos.disco !== 2) ? 136 : 146,
+        maxX = (Tocadiscos.disco !== 2) ? disk.offsetWidth : disk.offsetWidth - 10,
         minY = 61,
         maxY = disk.offsetHeight - 61,
         moveMaxX = offsetLeft + minX,
