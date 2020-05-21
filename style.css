@@ -201,6 +201,11 @@ body{
     margin-top: 4rem;
 }
 
+button:disabled{
+    opacity: 50%;
+    color: black;
+}
+
 .control_btn{
     display: block;
     width: 4rem;
