@@ -45,6 +45,9 @@ function discoTipo(value) {
         case 3:
             return "disk3";
             break;
+        case 4:
+            return "disk4";
+            break;
         default:
             return "";
     }
@@ -71,25 +74,25 @@ function agujaRotacion(value) {
         case 1:
             // arm1
             return {
-                inicio: (Tocadiscos.disco !== 2) ? -15 : -12,
-                fin: (Tocadiscos.disco !== 2) ? 4 : 0,
-                deg: (Tocadiscos.disco !== 2) ? 20 : 13
+                inicio: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? -15 : -12,
+                fin: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 4 : 0,
+                deg: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 20 : 13
             };
             break;
         case 2:
             // arm2
             return {
-                inicio: (Tocadiscos.disco !== 2) ? -12 : -8,
-                fin: (Tocadiscos.disco !== 2) ? 12 : 8,
-                deg: (Tocadiscos.disco !== 2) ? 25 : 17
+                inicio: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? -12 : -8,
+                fin: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 12 : 8,
+                deg: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 25 : 17
             };
             break;
         case 3:
             // arm3
             return {
-                inicio: (Tocadiscos.disco !== 2) ? -30 : -28,
-                fin: (Tocadiscos.disco !== 2) ? -13 : -15,
-                deg: (Tocadiscos.disco !== 2) ? 17 : 13
+                inicio: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? -30 : -28,
+                fin: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? -13 : -15,
+                deg: ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 17 : 13
             };;
             break;
         default:
@@ -106,7 +109,8 @@ const ReproductorTipo = {
     EstiloReproduccion = {
         get Linear(){ return 1; }, // Reproducir de inicio a fin
         get LinearLoop(){ return 2; }, // Reproducir de inico a fin y repetir
-        get Shuffle(){ return 3; } // Reproducir revolviendo la lista
+        get Shuffle(){ return 3; }, // Reproducir revolviendo la lista
+        get Sattolo(){ return 4; } // Reproducir revolviendo con Sattolo
     },
     // Tipo de visualización del tiempo final de la reproducción
     TiempoFinal = {
@@ -118,12 +122,12 @@ const Tocadiscos = {
     disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
     reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
-    estiloReproduccion: 2, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
-    tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
-    moverAguja: 1, // Mover aguja para adelantar/retrasar pista 1=si, 0=no
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
-    valorTiempoGeneral: "01:00:00" // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    valorTiempoGeneral: "01:00:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    estiloReproduccion: 2, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
+    tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
+    moverAguja: 1 // Mover aguja para adelantar/retrasar pista 1=si, 0=no
 };
 
 
@@ -142,6 +146,30 @@ Array.prototype.shuffle = function() {
     }
 
     return this;
+}
+Array.prototype.sattolo = function() {
+    const len = this.length;
+
+    for (let i = 0; i < len - 1; i++) { // 0 to n -1, exclusive because the last item doesn't need swapping
+        let j = Math.floor(Math.random() * (len-(i+1)))+(i+1); // i+1 to len, exclusive
+        const temp = this[i];
+        this[i] = this[j];
+        this[j] = temp;
+    }
+    
+    return this;
+}
+Array.prototype.copy = function() {
+    return Array.from(this);
+}
+Array.prototype.equalsTo = function(array) {
+    if (this.length !== array.length) return false;
+
+    for (let i = 0; i < this.length; i++) {
+        if (this[i] !== array[i]) return false;
+    }
+
+    return true;
 }
 
 // Acortador para 'addEventListener'
@@ -300,13 +328,20 @@ function onLoadPlayerData() {
 // Al iniciar la reproducción de la pista
 function onPlayPlayer() {
     player.isStop = false;
+    let shuffleCheck = [EstiloReproduccion.Shuffle, EstiloReproduccion.Sattolo];
 
     if(!isStarted){
         // Verificar si se va a reproducir por lista de canciones
         if(Tocadiscos.reproductorTipo === ReproductorTipo.Playlist){
             if(Tocadiscos.canciones.length > 0){
-                if(Tocadiscos.estiloReproduccion === EstiloReproduccion.Shuffle){
-                    Tocadiscos.canciones.shuffle();
+                if(shuffleCheck.indexOf(Tocadiscos.estiloReproduccion) !== -1){
+                    if(Tocadiscos.estiloReproduccion === EstiloReproduccion.Shuffle){
+                        Tocadiscos.canciones.shuffle();
+                    }else{
+                        Tocadiscos.canciones.sattolo();
+                    }
+                    
+
                     console.log("----- Lista Inicial -----");
                     console.log(Tocadiscos.canciones);
                 }
@@ -374,15 +409,20 @@ function onEndedPlayerData() {
 
         // Si esta en modo LinearLoop o Shuffle, reinicia la reproducción de la lista al inicio
         if(Tocadiscos.estiloReproduccion != EstiloReproduccion.Linear){
+            let shuffleCheck = [EstiloReproduccion.Shuffle, EstiloReproduccion.Sattolo];
             songIndex = (songIndex + 1 == playlistLength) ? -1 : songIndex;
 
-            if(songIndex == -1 && Tocadiscos.estiloReproduccion == EstiloReproduccion.Shuffle){
+            if(songIndex == -1 && shuffleCheck.indexOf(Tocadiscos.estiloReproduccion) !== -1){
                 oldShuffleSongs = Array.from(Tocadiscos.canciones);
 
                 let lastSOngFromOldList = oldShuffleSongs[oldShuffleSongs.length - 1];
 
                 do{
-                    Tocadiscos.canciones.shuffle();
+                    if(Tocadiscos.estiloReproduccion === EstiloReproduccion.Shuffle){
+                        Tocadiscos.canciones.shuffle();
+                    }else{
+                        Tocadiscos.canciones.sattolo();
+                    }
                 }while(Tocadiscos.canciones[0] === lastSOngFromOldList);
 
                 console.log("----- Lista Antigua -----");
@@ -495,8 +535,8 @@ function onClickDisk(e) {
         screenY = e.y,
         offsetLeft = disk.offsetParent.offsetLeft + disk.offsetLeft,
         //clientRect = disk.of,
-        minX = (Tocadiscos.disco !== 2) ? 136 : 146,
-        maxX = (Tocadiscos.disco !== 2) ? disk.offsetWidth : disk.offsetWidth - 10,
+        minX = ([2,4].indexOf(Tocadiscos.disco) !== -1) ? 136 : 146,
+        maxX = ([2,4].indexOf(Tocadiscos.disco) !== -1) ? disk.offsetWidth : disk.offsetWidth - 10,
         minY = 61,
         maxY = disk.offsetHeight - 61,
         moveMaxX = offsetLeft + minX,
