@@ -29,7 +29,9 @@ const SONGS = new Array(
     {path: "./canciones/012.mp3", artist: "Chino y Nacho ft. Daddy Yankee", song: "Andas en mi cabeza", duration: "04:26"},
     {path: "./canciones/013.mp3", artist: "Danny Ocean", song: "Me rehuso", duration: "03:43"},
     {path: "./canciones/014.mp3", artist: "Danny Ocean", song: "Dembow", duration: "04:23"},
-    {path: "./canciones/015.mp3", artist: "Danny Ocean", song: "Vuelve", duration: "03:39"}
+    {path: "./canciones/015.mp3", artist: "Danny Ocean", song: "Vuelve", duration: "03:39"},
+    {path: "https://vk.com/doc297826490_516662404", type:"mp3", artist: "Nacho", song: "Bailame", duration: "55:37"},
+    {path: "https://drive.google.com/uc?export=download&id=1-HRTK8iCj9PZyNmw-RId10BotJuEoI15", type:"mp3", artist: "Nacho", song: "Bailame", duration: "01:52:34"}
  );
 
 
@@ -122,12 +124,12 @@ const ReproductorTipo = {
 const Tocadiscos = {
     disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
-    reproductorTipo: 2, // Tipo de reproductor 1=lista, 2=radio
+    reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
     url: 'http://198.27.83.198:5140/stream', // URL de la radio
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
     valorTiempoGeneral: "00:10:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
-    estiloReproduccion: 4, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista, 4=sattolo
+    estiloReproduccion: 1, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista, 4=sattolo
     tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
     moverAguja: 1 // Mover aguja para adelantar/retrasar pista 1=si, 0=no
 };
@@ -239,12 +241,16 @@ function getSecondsTime(duration) {
 }
 
 // carga el recurso de la pista, ya sea la direción del mp3 o el base64
-function setSource(source) {
+function setSource(source, type) {
+    let isNotStream = Tocadiscos.reproductorTipo !== ReproductorTipo.Stream,
+        isType = type;
+        
     return new Promise((resolve, reject) => {
-        if(Tocadiscos.reproductorTipo !== ReproductorTipo.Stream){
+        if(isNotStream){
             // Si la dirección contiene extensión js|txt|json o si es una url normal sin extensión
             // Se carga el valor del base64
-            if(source.match(/\w+.(txt|json|js)/g) || !source.match(/.+(mp3|ogg|opus|aac|m4a)/g)){
+            if(source.match(/\w+.(txt|json|js)/g) || (!source.match(/.+(mp3|ogg|opus|aac|m4a)/g)) && !isType){
+                console.log("base64")
                 let script = document.createElement("script");
 
                 script.onload = _ => {
@@ -255,8 +261,9 @@ function setSource(source) {
 
                 script.src = source;
                 document.body.appendChild(script);
-            }else if(source.match(/.+(mp3|ogg|opus|aac|m4a)/g)){
+            }else if(source.match(/.+(mp3|ogg|opus|aac|m4a)/g) || isType){
                 // cargar el archivo mp3|ogg|opus|aac|m4a
+                console.log("mp3")
                 player.src = source;
                 resolve();
             }else{
@@ -379,7 +386,8 @@ function onPlayPlayer() {
                 // Valores de la canción actual en reproducción
                 currentSong = {
                     index: songIndex,
-                    path: Tocadiscos.canciones[songIndex].path
+                    path: Tocadiscos.canciones[songIndex].path,
+                    type: (typeof Tocadiscos.canciones[songIndex].type == "undefined") ? false : true
                 };
             }
 
@@ -391,7 +399,7 @@ function onPlayPlayer() {
             }
         }
 
-        setSource(currentSong.path)
+        setSource(currentSong.path, currentSong.type)
             .then(() => player.play())
             .catch(() => console.error("Error on load source: ", currentSong.path));
 
@@ -468,11 +476,12 @@ function onEndedPlayerData() {
             songIndex++;
             currentSong = {
                 index: songIndex,
-                path: Tocadiscos.canciones[songIndex].path
+                path: Tocadiscos.canciones[songIndex].path,
+                type: (typeof Tocadiscos.canciones[songIndex].type == "undefined") ? false : true
             }
 
             setTimeout(() => {
-                setSource(currentSong.path)
+                setSource(currentSong.path, currentSong.type)
                     .then(() => player.play())
                     .catch(() => console.error("Error on load source: ", currentSong.path));
             }, 2000);
