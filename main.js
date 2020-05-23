@@ -122,11 +122,12 @@ const ReproductorTipo = {
 const Tocadiscos = {
     disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
-    reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
+    reproductorTipo: 2, // Tipo de reproductor 1=lista, 2=radio
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
-    mostrarTiempoGeneral: 1, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
-    valorTiempoGeneral: "01:00:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
-    estiloReproduccion: 2, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista
+    url: 'http://198.27.83.198:5140/stream', // URL de la radio
+    mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
+    valorTiempoGeneral: "00:00:30", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    estiloReproduccion: 4, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista, 4=sattolo
     tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
     moverAguja: 1 // Mover aguja para adelantar/retrasar pista 1=si, 0=no
 };
@@ -240,26 +241,31 @@ function getSecondsTime(duration) {
 // carga el recurso de la pista, ya sea la direción del mp3 o el base64
 function setSource(source) {
     return new Promise((resolve, reject) => {
-        // Si la dirección contiene extensión js|txt|json o si es una url normal sin extensión
-        // Se carga el valor del base64
-        if(source.match(/\w+.(txt|json|js)/g) || source.match(/^(ftp|http|https):\/\/[^ "]+[^mp3|ogg|wav]$/g)){
-            let script = document.createElement("script");
+        if(Tocadiscos.reproductorTipo !== ReproductorTipo.Stream){
+            // Si la dirección contiene extensión js|txt|json o si es una url normal sin extensión
+            // Se carga el valor del base64
+            if(source.match(/\w+.(txt|json|js)/g) || !source.match(/.+(mp3|ogg|opus|aac|m4a)/g)){
+                let script = document.createElement("script");
 
-            script.onload = _ => {
-                player.src = base64;
-                script.remove();
+                script.onload = _ => {
+                    player.src = base64;
+                    script.remove();
+                    resolve();
+                }
+
+                script.src = source;
+                document.body.appendChild(script);
+            }else if(source.match(/.+(mp3|ogg|opus|aac|m4a)/g)){
+                // cargar el archivo mp3|ogg|opus|aac|m4a
+                player.src = source;
                 resolve();
+            }else{
+                // capturar un error
+                reject();
             }
-
-            script.src = source;
-            document.body.appendChild(script);
-        }else if(source.match(/.+(mp3|ogg|wav)/g)){
-            // cargar el archivo .mp3
+        }else{
             player.src = source;
             resolve();
-        }else{
-            // capturar un error
-            reject();
         }
     });
 }
@@ -299,6 +305,16 @@ function onCurrentTimeInterval() {
     let duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? getSecondsTime(Tocadiscos.valorTiempoGeneral) : player.duration;
 
     currentTime = (Tocadiscos.mostrarTiempoGeneral == 1) ? acumulateTime + player.currentTime : player.currentTime;
+
+    if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
+        if(currentTime >= duration){
+            updateIndicators(duration, duration);
+            
+            setTimeout(() => onClickBtnStop(), 500);
+
+            setTimeout(() => { setSource(Tocadiscos.url).then(() => player.play()) }, 1500);
+        }
+    }
    
     //currentTime++;
     //console.log(currentTime, player.currentTime);
@@ -362,13 +378,14 @@ function onPlayPlayer() {
         }else if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
             currentSong = {
                 index: -1,
-                path: Tocadiscos.canciones
+                path: Tocadiscos.url
             }
         }
 
         setSource(currentSong.path)
             .then(() => player.play())
             .catch(() => console.error("Error on load source: ", currentSong.path));
+
         arm.style.transform = 'rotate('+agujaRotacion(Tocadiscos.aguja).inicio+'deg)';
         isStarted = true;
     }
@@ -418,7 +435,7 @@ function onEndedPlayerData() {
             songIndex = (songIndex + 1 == playlistLength) ? -1 : songIndex;
 
             if(songIndex == -1 && shuffleCheck.indexOf(Tocadiscos.estiloReproduccion) !== -1){
-                oldShuffleSongs = Array.from(Tocadiscos.canciones);
+                oldShuffleSongs = Tocadiscos.canciones.copy();
 
                 let lastSOngFromOldList = oldShuffleSongs[oldShuffleSongs.length - 1];
 
@@ -426,6 +443,7 @@ function onEndedPlayerData() {
                     if(Tocadiscos.estiloReproduccion === EstiloReproduccion.Shuffle){
                         Tocadiscos.canciones.shuffle();
                     }else{
+                        Tocadiscos.canciones = oldShuffleSongs.copy();
                         Tocadiscos.canciones.sattolo();
                     }
                 }while(Tocadiscos.canciones[0] === lastSOngFromOldList);
@@ -483,7 +501,7 @@ function onClickBtnStart(e) {
 // Actualiza el valor de la etiqueta del porcentaje de progreso
 function onUpdateProgressSong(e){
     let progressValue = e.detail.value;
-    progressIndicator.textContent = progressValue + " %";
+    progressIndicator.textContent = ((progressValue <= 100) ? progressValue : 100) + " %";
 }
 
 // Presionar el botón de detener
@@ -664,6 +682,7 @@ window.addEventListener("load", function () {
     (function(){
         disk.classList.add(discoTipo(Tocadiscos.disco));
         arm.classList.add(agujaTipo(Tocadiscos.aguja));
+        Tocadiscos.mostrarTiempoGeneral = (Tocadiscos.reproductorTipo == ReproductorTipo.Stream) ? 1 : Tocadiscos.mostrarTiempoGeneral;
         getTotalDurationForPlaylist();
     })();
 
