@@ -126,7 +126,7 @@ const Tocadiscos = {
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
     url: 'http://198.27.83.198:5140/stream', // URL de la radio
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
-    valorTiempoGeneral: "00:00:30", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    valorTiempoGeneral: "00:10:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
     estiloReproduccion: 4, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista, 4=sattolo
     tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
     moverAguja: 1 // Mover aguja para adelantar/retrasar pista 1=si, 0=no
@@ -271,7 +271,9 @@ function setSource(source) {
 }
 
 function updateIndicators(currentTime, duration){
-    currentTimeIndicator.innerHTML = getReadableTime(currentTime);
+    let comodin = (duration >= 3600) ? "00<span style='color: yellow'>:</span>" : "";
+
+    currentTimeIndicator.innerHTML = comodin + getReadableTime(currentTime);
     // Actualizar la rotación del brazo
     arm.dispatchEvent(new CustomEvent('updaterotationarm', {
         detail: {
@@ -304,7 +306,11 @@ function updateIndicators(currentTime, duration){
 function onCurrentTimeInterval() {
     let duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? getSecondsTime(Tocadiscos.valorTiempoGeneral) : player.duration;
 
-    currentTime = (Tocadiscos.mostrarTiempoGeneral == 1) ? acumulateTime + player.currentTime : player.currentTime;
+    if(Tocadiscos.reproductorTipo !== ReproductorTipo.Stream) {
+        currentTime = (Tocadiscos.mostrarTiempoGeneral == 1) ? acumulateTime + player.currentTime : player.currentTime;
+    }else{
+        currentTime++;
+    }
 
     if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
         if(currentTime >= duration){
@@ -335,6 +341,9 @@ function onLoadPlayerData() {
 
     duration = (Tocadiscos.mostrarTiempoGeneral == 1) ? getSecondsTime(Tocadiscos.valorTiempoGeneral) : duration;
     
+    let comodin = (duration >= 3600) ? "00<span style='color: yellow'>:</span>" : "";
+
+    currentTimeIndicator.innerHTML = comodin + getReadableTime(0);
     lastTimeIndicator.innerHTML = getReadableTime(duration);
     rotationIncrement = agujaRotacion(Tocadiscos.aguja).deg / duration;
     isLoaded = true;
@@ -390,7 +399,6 @@ function onPlayPlayer() {
         isStarted = true;
     }
 
-    //currentTimeInterval = setInterval(onCurrentTimeInterval, 1000);
     btnStart.classList.add("to_pause");
     disk.classList.add("active");
     disk.style.animationPlayState = "running";
@@ -491,7 +499,22 @@ function getTotalDurationForPlaylist() {
 
 // Presionar el botón de inicio/pausa
 function onClickBtnStart(e) {
-    if(btnStart.classList.contains("to_pause")){
+    if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream){
+        if(btnStart.classList.contains("to_pause")){
+            clearInterval(currentTimeInterval);
+            btnStart.classList.remove("to_pause");
+            disk.style.animationPlayState = "paused";
+            player.muted = true;
+        }else{
+            currentTimeInterval = setInterval(onCurrentTimeInterval, 1000);
+            player.muted = false;
+            btnStart.classList.add("to_pause");
+            disk.classList.add("active");
+            disk.style.animationPlayState = "running";
+        }
+    }
+
+    if(btnStart.classList.contains("to_pause") && Tocadiscos.reproductorTipo !== ReproductorTipo.Stream){
         player.pause();
     }else{
         player.play();
@@ -508,6 +531,9 @@ function onUpdateProgressSong(e){
 function onClickBtnStop(e) {
     player.stop();
     player = new _Audio();
+
+    if(Tocadiscos.reproductorTipo === ReproductorTipo.Stream)
+        clearInterval(currentTimeInterval);
 }
 
 // Reinicar los valores de las distintas etiquetas
@@ -665,7 +691,7 @@ function _Audio() {
 
     _audio
         .on("loadeddata", onLoadPlayerData)
-        .on("timeupdate", onCurrentTimeInterval)
+        .on("timeupdate", (Tocadiscos.reproductorTipo !== ReproductorTipo.Stream) ? onCurrentTimeInterval : function(){})
         .on("play", onPlayPlayer)
         .on("pause", onPausePlayer)
         .on("ended", onEndedPlayerData);
