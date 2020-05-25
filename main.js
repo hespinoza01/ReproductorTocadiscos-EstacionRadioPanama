@@ -124,13 +124,13 @@ const ReproductorTipo = {
 const Tocadiscos = {
     disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
-    reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
+    reproductorTipo: 2, // Tipo de reproductor 1=lista, 2=radio
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
-    url: 'http://198.27.83.198:5140/stream', // URL de la radio
+    url: 'https://icecast.teveo.cu/b3jbfThq',//'http://198.27.83.198:5140/stream', // URL de la radio
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
-    valorTiempoGeneral: "00:10:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
+    valorTiempoGeneral: "01:01:00", // Tiempo de duración en segundos para el tipo de reproducción general, 1 hora = 3600 segundos
     estiloReproduccion: 1, // Tipo de reproducción 1=inicio a fin, 2=inicio a fin y repetir, 3=revolver lista, 4=sattolo
-    tiempoFinal: 1, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
+    tiempoFinal: 2, // Tipo de tiempo final 1=timepo total, 2=tiempo restante
     moverAguja: 1 // Mover aguja para adelantar/retrasar pista 1=si, 0=no
 };
 
@@ -301,7 +301,8 @@ function updateIndicators(currentTime, duration){
         lastTimeIndicator.dispatchEvent(
             new CustomEvent('updateTiempoRestante', {
                 detail: {
-                    duration: durationTotal - currentTime
+                    duration: durationTotal - currentTime,
+                    total: durationTotal
                 },
                 bubbles: true,
                 cancelable: true
@@ -339,7 +340,8 @@ function onCurrentTimeInterval() {
 
 // Actualiza la etiqueta del tiempo restante
 function onUpdateTiempoRestante(e) {
-    lastTimeIndicator.innerHTML = getReadableTime(e.detail.duration);
+    let comodin = (e.detail.total >= 3600 && e.detail.duration < 3600) ? "00<span style='color: yellow'>:</span>" : "";
+    lastTimeIndicator.innerHTML = comodin + getReadableTime(e.detail.duration);
 }
 
 // Al cargar la pista actual, carga la duración y calcula el ángulo de rotación del brazo
