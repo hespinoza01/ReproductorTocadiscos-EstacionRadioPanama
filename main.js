@@ -124,7 +124,7 @@ const ReproductorTipo = {
 const Tocadiscos = {
     disco: 2, // Estilo del disco 1, 2, 3
     aguja: 1, // Estilo de la aguja 1, 2, 3
-    reproductorTipo: 2, // Tipo de reproductor 1=lista, 2=radio
+    reproductorTipo: 1, // Tipo de reproductor 1=lista, 2=radio
     canciones: SONGS, // Lista de canciones a reproducir para la opción 1 de 'reproductorTipo' o la dirección para la opción 2 de 'reproductorTipo'
     url: 'https://icecast.teveo.cu/b3jbfThq',//'http://198.27.83.198:5140/stream', // URL de la radio
     mostrarTiempoGeneral: 0, // Mostrar tiempo general de la reproducción, 1=sí, 0=no
@@ -710,7 +710,7 @@ function _Audio() {
     return _audio;
 }
 
-
+let touch = null;
 // Código a ejecutar después de terminar de cargar la página
 window.addEventListener("load", function () {
     //player.prototype.source = onSourcePlayer;
@@ -736,7 +736,10 @@ window.addEventListener("load", function () {
         .on('updaterotationarm', onUpdateRotationArm)
         .on("mousedown", onMouseDownArm)
         .on("mousemove", onMouseMoveArm)
-        .on("mouseup", onMouseUpArm);
+        .on("mouseup", onMouseUpArm)
+        .on("touchstart", onMouseDownArm)
+        .on("touchmove", function(e){ onMouseMoveArm({x: e.touches[0].clientX, y: e.touches[0].clientY}) })
+        .on("touchend", onMouseUpArm);
 
     //document.body.on("mousemove", onMouseMoveArm);
 
